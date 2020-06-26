@@ -77,4 +77,7 @@ def get_dashboards():
         data = json.load(f)
     return data
 
-
+def get_cron_info():
+    with open('/etc/j4j/j4j_mount/j4j_common/cronjob.json', 'r') as f:
+        cron = json.load(f)
+    return cron
