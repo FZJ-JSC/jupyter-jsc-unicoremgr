@@ -61,6 +61,18 @@ def stop_job(app_logger, uuidcode, servername, system, request_headers, app_urls
                                       request_headers.get('kernelurl'),
                                       unicore_header,
                                       cert)
+        else:
+            # if it's a cron job we want to delete it
+            cron_info = utils_file_loads.get_cron_info()
+            user, servernameshort = request_headers.get('servername', ':').split(':')  # @UnusedVariable
+            if cron_info.get('systems', {}).get(request_headers.get('system').upper(), {}).get('servername', '<undefined>') == servernameshort:
+                if cron_info.get('systems', {}).get(request_headers.get('system').upper(), {}).get('account', '<undefined>') == request_headers.get('account'):
+                    if cron_info.get('systems', {}).get(request_headers.get('system').upper(), {}).get('project', '<undefined>') == request_headers.get('project'):
+                        unicore_utils.destroy_job(app_logger,
+                                                  uuidcode,
+                                                  request_headers.get('kernelurl'),
+                                                  unicore_header,
+                                                  cert)
     
     # Kill the tunnel
     tunnel_info = { "servername": servername }
