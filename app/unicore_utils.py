@@ -443,6 +443,8 @@ def dashboard_start_sh(app_logger, uuidcode, system, project, checkboxes, inputs
     app_logger.debug("uuidcode={} - Create start.sh file for dashboard".format(uuidcode))
     #dashboard_info = utils_file_loads.get_dashboards().get(dashboard_name, {})
     startjupyter = '#!/bin/bash\n_term() {\n  echo \"Caught SIGTERM signal!\"\n  kill -TERM \"$child\" 2>/dev/null\n}\ntrap _term SIGTERM\n'
+    if 'sanity_checks' in inputs.get(system.upper(), {}).get('start', {}).keys():
+        startjupyter += inputs.get(system.upper(), {}).get('start', {}).get('sanity_checks', '#SanityChecks')+'\n'
     startjupyter += 'hostname>.host;\n'
     #hpc_type = dashboard_info.get(system, {}).get('hpctype', '<Please set hpc type in dashboards.json for {}:{}>'.format(dashboard_name, system))
     if 'precommands' in dashboard_info.get(system, {}).keys():
@@ -487,6 +489,8 @@ def start_sh(app_logger, uuidcode, system, project, checkboxes, inputs, account)
     app_logger.debug("uuidcode={} - Create start.sh file".format(uuidcode))
     unicorex_info = utils_file_loads.get_unicorex()
     startjupyter = '#!/bin/bash\n_term() {\n  echo \"Caught SIGTERM signal!\"\n  kill -TERM \"$child\" 2>/dev/null\n}\ntrap _term SIGTERM\n'
+    if 'sanity_checks' in inputs.get(system.upper(), {}).get('start', {}).keys():
+        startjupyter += inputs.get(system.upper(), {}).get('start', {}).get('sanity_checks', '#SanityChecks')+'\n'
     startjupyter += 'hostname>.host;\n'
     startjupyter += inputs.get(system.upper(), {}).get('start', {}).get('precommands', '#precommands')+'\n'
     project_link_list = unicorex_info.get(system.upper(), {}).get("projectLinks", [])

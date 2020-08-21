@@ -15,7 +15,8 @@ from flask import current_app as app
 from app.utils import validate_auth, remove_secret, SpawnException
 from app.jobs_utils import stop_job
 from app import unicore_utils, utils_file_loads, unicore_communication,\
-    hub_communication, tunnel_utils, jobs_threads, orchestrator_communication
+    hub_communication, tunnel_utils, jobs_threads, orchestrator_communication,\
+    jobs_utils
 from time import sleep
 
 class Jobs(Resource):
@@ -263,6 +264,17 @@ class Jobs(Resource):
                     # It's running and tunnel is up
                     status = 'running'
                 elif '.host' in children or '/.host' in children:
+                    if '.quota_check.out' in children or '/.quota_check.out' in children:
+                        quota_result = jobs_utils.quota_check(app.log,
+                                                              uuidcode,
+                                                              app.urls,
+                                                              request.headers,
+                                                              unicore_header,
+                                                              cert,
+                                                              servername)
+                        if not quota_result:
+                            # User Quota in $HOME is exceeded. The job was stopped.
+                            return "", 539
                     if request.headers.get('pollspawner', 'false').lower() == 'true':
                         # If there's an error when collecting the children list it may happen, that we would try to create a tunnel for a server that's already running for a long time
                         app.log.error('uuidcode={} - Poll Spawner wants to create tunnel. Stop it. Children list: {}'.format(uuidcode, children))

@@ -9,7 +9,8 @@ import time
 import json
 
 from app import unicore_communication, hub_communication,\
-    tunnel_utils, orchestrator_communication, utils_file_loads
+    tunnel_utils, orchestrator_communication, utils_file_loads, jobs_utils,\
+    unicore_utils
 from app.unity_communication import renew_token
 from app.utils import remove_secret
 from app.jobs_utils import stop_job
@@ -212,7 +213,18 @@ def get(app_logger, uuidcode, request_headers, unicore_header, app_urls, cert):
                 # It's not running anymore
                 status = 'stopped'
             elif '.host' in children or '/.host' in children:
-                # running, build up tunnel
+                # running, build up tunnel if quota_check was successful
+                if '.quota_check.out' in children or '/.quota_check.out' in children:
+                    quota_result = jobs_utils.quota_check(app_logger,
+                                                          uuidcode,
+                                                          app_urls,
+                                                          request_headers,
+                                                          unicore_header,
+                                                          cert,
+                                                          servername)
+                    if not quota_result:
+                        # User Quota in $HOME is exceeded. The job was stopped.
+                        return
                 try:
                     tunnel_utils.create(app_logger,
                                         uuidcode,
