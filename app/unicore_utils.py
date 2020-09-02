@@ -104,11 +104,13 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
     return unicore_header, accesstoken, expire
 
 #
-def create_unicore8_job(app_logger, uuidcode, request_json, project, unicore_input, escapedusername):
+def create_unicore8_job(app_logger, uuidcode, request_json, project, unicore_input, escapedusername, accesstoken, expire):
     app_logger.debug("uuidcode={} - Create UNICORE/X-8 Job.".format(uuidcode))
     env_list = []
     for key, value in request_json.get('Environment', {}).items():
         env_list.append('{}={}'.format(key, value))
+    env_list.append('{}={}'.format("UNITYJSCACCESSTOKEN", accesstoken))
+    env_list.append('{}={}'.format("UNITYJSCACCESSTOKENEXPIRATION", expire))
     job = {'ApplicationName': 'Bash shell',
            'Environment': env_list,
            'Imports': []}
@@ -170,11 +172,13 @@ def create_unicore8_job(app_logger, uuidcode, request_json, project, unicore_inp
     app_logger.debug("uuidcode={} - UNICORE/X-8 Job: {}".format(uuidcode, job))
     return job
 
-def create_unicore8_job_dashboard(app_logger, uuidcode, request_json, project, unicore_input, escapedusername):
+def create_unicore8_job_dashboard(app_logger, uuidcode, request_json, project, unicore_input, escapedusername, accesstoken, expire):
     app_logger.debug("uuidcode={} - Create UNICORE/X-8 Job.".format(uuidcode))
     env_list = []
     for key, value in request_json.get('Environment', {}).items():
         env_list.append('{}={}'.format(key, value))
+    env_list.append('{}={}'.format("UNITYJSCACCESSTOKEN", accesstoken))
+    env_list.append('{}={}'.format("UNITYJSCACCESSTOKENEXPIRATION", expire))
     job = {'ApplicationName': 'Bash shell',
            'Environment': env_list,
            'Imports': []}

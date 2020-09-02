@@ -28,7 +28,7 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
                                  app_urls.get('hub', {}).get('url_proxy_route'),
                                  app_urls.get('hub', {}).get('url_cancel'),
                                  request_headers.get('jhubtoken'),
-                                 "A mandatory backend service had a problem. An administrator is informed.",
+                                 "Something went wrong. An administrator is informed.",
                                  request_headers.get('escapedusername'),
                                  servername)
         return False

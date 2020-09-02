@@ -465,7 +465,9 @@ class Dashboards(Resource):
                                                                        request.json,
                                                                        request.headers.get('Project'),
                                                                        unicore_input,
-                                                                       request.headers.get('escapedusername'))
+                                                                       request.headers.get('escapedusername'),
+                                                                       request.headers.get('accesstoken'),
+                                                                       request.headers.get('expire'))
 
             # Get URL and certificate to communicate with UNICORE/X
             app.log.trace("uuidcode={} - FileLoad: UNICORE/X url".format(uuidcode))
@@ -504,7 +506,7 @@ class Dashboards(Resource):
                         raise SpawnException("Invalid token. Please logout and login again.")
                     else:
                         app.log.error("uuidcode={} - Unexpected status_code. Add case for this status_code.".format(uuidcode))
-                    raise SpawnException("A backend service has to be restarted. An administrator is informed. Please try again in a few minutes.")
+                    raise SpawnException("Something went wrong. An administrator is informed. Please try again in a few minutes.")
                 else:
                     unicore_header['X-UNICORE-SecuritySession'] = response_header['X-UNICORE-SecuritySession']
                     kernelurl = response_header['Location']
@@ -545,7 +547,7 @@ class Dashboards(Resource):
                     if status_code != 200:
                         if status_code == 500:
                             app.log.error("uuidcode={} - UNICORE RESTART REQUIRED!! {}".format(uuidcode, request.json.get('system', '<system_unknown>')))
-                            raise SpawnException("A backend service has to be restarted. An administrator is informed. Please try again in a few minutes.")
+                            raise SpawnException("Something went wrong. An administrator is informed. Please try again in a few minutes.")
                         else:
                             app.log.error("uuidcode={} - Unexpected status_code. Add case for this status_code.".format(uuidcode))
                         if i < 4:
