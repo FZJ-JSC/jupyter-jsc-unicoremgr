@@ -102,7 +102,7 @@ class Jobs(Resource):
                             app.log.debug("uuidcode={} - Could not get properties. Sleep for 2 seconds and try again".format(uuidcode))
                             sleep(2)
                         else:
-                            app.log.error("uuidcode={} - UNICORE RESTART REQUIRED!!. system: {}".format(uuidcode, request.headers.get('system', '<system_unknown>')))
+                            app.log.error("uuidcode={} - Could not get properties. system: {}".format(uuidcode, request.headers.get('system', '<system_unknown>')))
                             app.log.warning("uuidcode={} - Could not get properties. UNICORE/X Response: {} {} {}".format(uuidcode, text, status_code, remove_secret(response_header)))
                             app.log.warning("uuidcode={} - Do not send update to JupyterHub.".format(uuidcode))
                             # If JupyterHub don't receives an update for a long time it can stop the job itself.
@@ -222,7 +222,7 @@ class Jobs(Resource):
                             app.log.debug("uuidcode={} - Could not get children list. Status Code 500. Try again in 2 seconds.".format(uuidcode))
                             sleep(2)
                         else:
-                            app.log.error("uuidcode={} - UNICORE/X RESTART REQUIRED".format(uuidcode))
+                            app.log.error("uuidcode={} - Could not get children list.".format(uuidcode))
                             orchestrator_communication.set_skip(app.log,
                                                                 uuidcode,
                                                                 app.urls.get('orchestrator', {}).get('url_skip'),
@@ -234,7 +234,6 @@ class Jobs(Resource):
                             app.log.debug("uuidcode={} - Could not get children list. Try again in 2 seconds".format(uuidcode))
                             sleep(2)
                         else:
-                            app.log.error("uuidcode={} - Unknown status code. Add case for this: {} {}".format(status_code, text))
                             app.log.error("uuidcode={} - Could not get children list. Do nothing and return. UNICORE/X Response: {} {} {}".format(uuidcode, text, status_code, remove_secret(response_header)))
                             orchestrator_communication.set_skip(app.log,
                                                                 uuidcode,
@@ -243,7 +242,6 @@ class Jobs(Resource):
                                                                 'False')
                             return "", 539
                 except:
-                    app.log.error("uuidcode={} - UNICORE/X RESTART REQUIRED".format(uuidcode))
                     app.log.exception("uuidcode={} - Could not get children list. {} {}".format(uuidcode, method, remove_secret(method_args)))
                     orchestrator_communication.set_skip(app.log,
                                                         uuidcode,
@@ -519,7 +517,15 @@ class Jobs(Resource):
                 if status_code != 201:
                     app.log.warning("uuidcode={} - Could not submit Job. Response from UNICORE/X: {} {} {}.".format(uuidcode, text, status_code, remove_secret(response_header)))
                     if status_code == 500:
-                        app.log.error("uuidcode={} - UNICORE RESTART REQUIRED!! {}".format(uuidcode, request.json.get('system', '<system_unknown>')))
+                        app.log.warning("uuidcode={} - UNICORE error {}".format(uuidcode, request.json.get('system', '<system_unknown>')))
+                        strtojson = json.loads(text)
+                        err_msg = strtojson.get('errorMessage', '<unknown>')
+                        mem = utils_file_loads.map_error_messages()
+                        for key, value in mem.items():
+                            if err_msg.startswith(key):
+                                app.log.info("uuidcode={} - User error message: {}".format(uuidcode, value))
+                                raise SpawnException(value)
+                        app.log.error("uuidcode={} - Unknown error message from UNICORE/X 500. Add to j4j_unicore/map_error_messages.json for better feedback.".format(uuidcode))
                     elif status_code == 403 or status_code == 432:
                         raise SpawnException("Invalid token. Please logout and login again.")
                     else:
@@ -564,7 +570,15 @@ class Jobs(Resource):
                                                                                        method_args)
                     if status_code != 200:
                         if status_code == 500:
-                            app.log.error("uuidcode={} - UNICORE RESTART REQUIRED!! {}".format(uuidcode, request.json.get('system', '<system_unknown>')))
+                            app.log.error("uuidcode={} - Could not submit job {}".format(uuidcode, request.json.get('system', '<system_unknown>')))
+                            strtojson = json.loads(text)
+                            err_msg = strtojson.get('errorMessage', '<unknown>')
+                            mem = utils_file_loads.map_error_messages()
+                            for key, value in mem.items():
+                                if err_msg.startswith(key):
+                                    app.log.info("uuidcode={} - User error message: {}".format(uuidcode, value))
+                                    raise SpawnException(value)
+                            app.log.error("uuidcode={} - Unknown error message from UNICORE/X 500. Add to j4j_unicore/map_error_messages.json for better feedback.".format(uuidcode))
                             raise SpawnException("Something went wrong. An administrator is informed. Please try again in a few minutes.")
                         else:
                             app.log.error("uuidcode={} - Unexpected status_code. Add case for this status_code.".format(uuidcode))

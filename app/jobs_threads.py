@@ -82,7 +82,7 @@ def get(app_logger, uuidcode, request_headers, unicore_header, app_urls, cert):
                             app_logger.debug("uuidcode={} - Could not get properties. Sleep for 2 seconds and try again".format(uuidcode))
                             time.sleep(2)
                         else:
-                            app_logger.error("uuidcode={} - UNICORE RESTART REQUIRED!!. system: {}".format(uuidcode, request_headers.get('system', '<system_unknown>')))
+                            app_logger.error("uuidcode={} - Could not get properties. system: {}".format(uuidcode, request_headers.get('system', '<system_unknown>')))
                             app_logger.warning("uuidcode={} - Could not get properties. UNICORE/X Response: {} {} {}".format(uuidcode, text, status_code, remove_secret(response_header)))
                             app_logger.warning("uuidcode={} - Do not send update to JupyterHub.".format(uuidcode))
                             # If JupyterHub don't receives an update for a long time it can stop the job itself.
