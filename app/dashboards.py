@@ -284,7 +284,8 @@ class Dashboards(Resource):
                                                 cert,
                                                 request.headers.get('jhubtoken'),
                                                 request.headers.get('escapedusername'),
-                                                servername)
+                                                servername,
+                                                app.urls.get('orchestrator', {}).get('url_hostname'))
                         except:
                             app.log.error("uuidcode={} - Could not create Tunnel. Used Parameters: {} {} {} {} {} {} {} {} {} {}".format(uuidcode,
                                                                                                                                 app.urls.get('tunnel', {}).get('url_tunnel'),

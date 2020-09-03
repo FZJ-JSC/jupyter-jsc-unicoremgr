@@ -6,10 +6,10 @@ Created on May 14, 2019
 '''
 
 from app import unicore_communication, hub_communication, unicore_utils,\
-    utils_file_loads, tunnel_communication
+    utils_file_loads, tunnel_communication, orchestrator_communication
 from app.utils import remove_secret
 
-def create(app_logger, uuidcode, app_hub_url_proxy_route, app_tunnel_url, app_hub_url_cancel, kernelurl, filedir, unicore_header, servername, system, port, cert, jhubtoken, username, servername_short):
+def create(app_logger, uuidcode, app_hub_url_proxy_route, app_tunnel_url, app_hub_url_cancel, kernelurl, filedir, unicore_header, servername, system, port, cert, jhubtoken, username, servername_short, app_orchestrator_url_hostname):
     app_logger.trace("uuidcode={} - Try to create a tunnel".format(uuidcode))
     accept = unicore_header.get('Accept', False)
     unicore_header['Accept'] = 'application/octet-stream'
@@ -52,7 +52,15 @@ def create(app_logger, uuidcode, app_hub_url_proxy_route, app_tunnel_url, app_hu
                                   unicore_header,
                                   cert)
         raise Exception("{} - Could not get hostname".format(uuidcode))
-        
+    app_logger.trace('uuidcode={} - Inform J4J_Orchestrator about the hostname'.format(uuidcode))
+    try:
+        orchestrator_communication.set_hostname(app_logger,
+                                                uuidcode,
+                                                app_orchestrator_url_hostname,
+                                                servername,
+                                                hostname)
+    except:
+        app_logger.exception("uuidcode={} - Could not set hostname to {} in J4J_Orchestrator database for {}".format(uuidcode, hostname, servername))
     tunnel_header = { 
         'Intern-Authorization': utils_file_loads.get_j4j_tunnel_token(),
         'uuidcode': uuidcode

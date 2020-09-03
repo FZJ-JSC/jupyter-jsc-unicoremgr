@@ -228,7 +228,8 @@ def get(app_logger, uuidcode, request_headers, unicore_header, app_urls, cert):
                                         cert,
                                         request_headers.get('jhubtoken'),
                                         request_headers.get('escapedusername'),
-                                        servername)
+                                        servername,
+                                        app_urls.get('orchestrator', {}).get('url_hostname'))
                 except:
                     orchestrator_communication.set_skip(app_logger,
                                                         uuidcode,
