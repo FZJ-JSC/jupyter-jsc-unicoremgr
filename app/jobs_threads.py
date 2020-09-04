@@ -9,8 +9,7 @@ import time
 import json
 
 from app import unicore_communication, hub_communication,\
-    tunnel_utils, orchestrator_communication, utils_file_loads, jobs_utils,\
-    unicore_utils
+    tunnel_utils, orchestrator_communication, utils_file_loads, jobs_utils
 from app.unity_communication import renew_token
 from app.utils import remove_secret
 from app.jobs_utils import stop_job
