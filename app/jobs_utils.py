@@ -6,6 +6,8 @@ from app.utils import remove_secret
 def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header, cert, servername):
     try:
         method = "GET"
+        accept = unicore_header.get('Accept', False)
+        unicore_header['Accept'] = 'application/octet-stream'
         method_args = {"url": request_headers.get('filedir')+'/.quota_check.out',
                        "headers": unicore_header,
                        "certificate": cert,
@@ -15,13 +17,13 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
                                                                               method,
                                                                               method_args)
         if status_code != 200:
-            app_logger.warning("uuidcode={} - Could not get hostname. UNICORE/X Response: {} {} {}".format(uuidcode, content, status_code, remove_secret(response_header)))
+            app_logger.warning("uuidcode={} - Could not get quota check output. UNICORE/X Response: {} {} {}".format(uuidcode, content, status_code, remove_secret(response_header)))
             raise Exception("{} - Could not get hostname. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
         else:
             unicore_header['X-UNICORE-SecuritySession'] = response_header['X-UNICORE-SecuritySession']
             quota_result = content.strip()
     except:
-        app_logger.exception("uuidcode={} - Could not get hostname. {} {}".format(uuidcode, method, remove_secret(method_args)))
+        app_logger.exception("uuidcode={} - Could not get quota check output. {} {}".format(uuidcode, method, remove_secret(method_args)))
         app_logger.warning("uuidcode={} - Send cancel to JupyterHub.".format(uuidcode))
         hub_communication.cancel(app_logger,
                                  uuidcode,
@@ -31,7 +33,15 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
                                  "Something went wrong. An administrator is informed.",
                                  request_headers.get('escapedusername'),
                                  servername)
+        if accept:
+            unicore_header['Accept'] = accept
+        else:
+            del unicore_header['Accept']
         return False
+    if accept:
+        unicore_header['Accept'] = accept
+    else:
+        del unicore_header['Accept']
     if quota_result.lower() == "datausage" or quota_result.lower() == "inode":
         app_logger.info("uuidcode={} - Quota Check for user: Quota exceeded {}".format(uuidcode, quota_result))
         stop_job(app_logger,
@@ -49,7 +59,7 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
         app_logger.debug("uuidcode={} - Quota Check for user ok".format(uuidcode))
         return True
     else:
-        app_logger.info("uuidcode={} - Could not understand the quota result: {}".format(uuidcode, quota_result))
+        app_logger.error("uuidcode={} - Could not understand the quota result: {}".format(uuidcode, quota_result))
         return True
 
 
