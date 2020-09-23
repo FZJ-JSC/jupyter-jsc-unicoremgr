@@ -58,8 +58,9 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
                  False)
         return False
     elif quota_result.lower() == "inode":
-        app_logger.info("uuidcode={} - Quota Check for user: Quota exceeded {}".format(uuidcode, quota_result))
+        inps = utils_file_loads.get_inputs()
         msg = inps.get(request_headers.get('system', 'unknown'), {}).get('sanity_checks_results', {}).get('quota', {}).get('inode', "You've got too many inodes in $HOME. Please check it at https://judoor.fz-juelich.de or with this command: \"$ jutil user dataquota\".")
+        app_logger.info("uuidcode={} - Quota Check for user: Quota exceeded {}".format(uuidcode, quota_result))
         stop_job(app_logger,
                  uuidcode,
                  servername,
