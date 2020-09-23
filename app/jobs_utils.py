@@ -42,7 +42,7 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
         unicore_header['Accept'] = accept
     else:
         del unicore_header['Accept']
-    if quota_result.lower() == "datausage" or quota_result.lower() == "inode":
+    if quota_result.lower() == "datausage":
         app_logger.info("uuidcode={} - Quota Check for user: Quota exceeded {}".format(uuidcode, quota_result))
         stop_job(app_logger,
                  uuidcode,
@@ -52,6 +52,19 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
                  app_urls,
                  True,
                  "Your disk quota in $HOME is exceeded. Please check it at https://judoor.fz-juelich.de or with this command: \"$ jutil user dataquota\".",
+                 True,
+                 False)
+        return False
+    elif quota_result.lower() == "inode":
+        app_logger.info("uuidcode={} - Quota Check for user: Quota exceeded {}".format(uuidcode, quota_result))
+        stop_job(app_logger,
+                 uuidcode,
+                 servername,
+                 request_headers.get('system'),
+                 request_headers,
+                 app_urls,
+                 True,
+                 "You've got too many inodes in $HOME. Please check it at https://judoor.fz-juelich.de or with this command: \"$ jutil user dataquota\".",
                  True,
                  False)
         return False
