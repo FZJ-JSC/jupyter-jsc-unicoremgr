@@ -43,6 +43,8 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
     else:
         del unicore_header['Accept']
     if quota_result.lower() == "datausage":
+        inps = utils_file_loads.get_inputs()
+        msg = inps.get(request_headers.get('system', 'unknown'), {}).get('sanity_checks_results', {}).get('quota', {}).get('datausage', "Your disk quota in $HOME is exceeded. Please check it at https://judoor.fz-juelich.de or with this command: \"$ jutil user dataquota\".")
         app_logger.info("uuidcode={} - Quota Check for user: Quota exceeded {}".format(uuidcode, quota_result))
         stop_job(app_logger,
                  uuidcode,
@@ -51,12 +53,13 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
                  request_headers,
                  app_urls,
                  True,
-                 "Your disk quota in $HOME is exceeded. Please check it at https://judoor.fz-juelich.de or with this command: \"$ jutil user dataquota\".",
+                 msg,
                  True,
                  False)
         return False
     elif quota_result.lower() == "inode":
         app_logger.info("uuidcode={} - Quota Check for user: Quota exceeded {}".format(uuidcode, quota_result))
+        msg = inps.get(request_headers.get('system', 'unknown'), {}).get('sanity_checks_results', {}).get('quota', {}).get('inode', "You've got too many inodes in $HOME. Please check it at https://judoor.fz-juelich.de or with this command: \"$ jutil user dataquota\".")
         stop_job(app_logger,
                  uuidcode,
                  servername,
@@ -64,7 +67,7 @@ def quota_check(app_logger, uuidcode, app_urls, request_headers, unicore_header,
                  request_headers,
                  app_urls,
                  True,
-                 "You've got too many inodes in $HOME. Please check it at https://judoor.fz-juelich.de or with this command: \"$ jutil user dataquota\".",
+                 msg,
                  True,
                  False)
         return False
