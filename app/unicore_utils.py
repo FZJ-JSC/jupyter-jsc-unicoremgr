@@ -155,7 +155,7 @@ def create_unicore8_job(app_logger, uuidcode, request_json, project, unicore_inp
                 node = random.choice(nodes)
                 app_logger.trace("uuidcode={} - Use random Booster Node: {}".format(uuidcode, node))
                 job['Login node'] = node
-        elif 'LoginNodeVis' in unicorex_info.get(request_json.get('system').upper(), {}).keys() or
+        elif 'LoginNodeVis' in unicorex_info.get(request_json.get('system').upper(), {}).keys() or \
              'LoginBooster' in unicorex_info.get(request_json.get('system').upper(), {}).keys():
             # this system supports vis or booster nodes. So we have to set the non vis/booster nodes explicitly
             nodes = unicorex_info.get(request_json.get('system').upper(), {}).get('LoginNode', [])
@@ -231,7 +231,7 @@ def create_unicore8_job_dashboard(app_logger, uuidcode, request_json, project, u
                 node = random.choice(nodes)
                 app_logger.trace("uuidcode={} - Use random Booster Node: {}".format(uuidcode, node))
                 job['Login node'] = node
-        elif 'LoginNodeVis' in unicorex_info.get(request_json.get('system').upper(), {}).keys() or
+        elif 'LoginNodeVis' in unicorex_info.get(request_json.get('system').upper(), {}).keys() or \
              'LoginBooster' in unicorex_info.get(request_json.get('system').upper(), {}).keys():
             # this system supports vis/booster nodes. So we have to set the non vis/booster nodes explicitly
             nodes = unicorex_info.get(request_json.get('system').upper(), {}).get('LoginNode', [])
