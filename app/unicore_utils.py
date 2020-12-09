@@ -137,7 +137,7 @@ def create_unicore8_job(app_logger, uuidcode, request_json, project, unicore_inp
     ux_notify_server_name = "{}_{}_{}".format(len(uuidcode), uuidcode, request_json.get('Environment', {}).get('JUPYTERHUB_SERVER_NAME'))
     ux_notify = ux_notify.replace('<user>', escapedusername).replace('<server>', ux_notify_server_name)
     job['Notification'] = ux_notify
-    if request_json.get('partition') in ['LoginNode', 'LoginNodeVis']:
+    if request_json.get('partition') in ['LoginNode', 'LoginNodeVis', 'LoginBooster']:
         job['Executable'] = '/bin/bash'
         job['Arguments'] = ['.start.sh']
         job['Job type'] = 'interactive'
@@ -147,6 +147,13 @@ def create_unicore8_job(app_logger, uuidcode, request_json, project, unicore_inp
                 # get system list ... choose one ... use it
                 node = random.choice(nodes)
                 app_logger.trace("uuidcode={} - Use random VIS Node: {}".format(uuidcode, node))
+                job['Login node'] = node
+        elif request_json.get('partition') in ['LoginBooster']:
+            nodes = unicorex_info.get(request_json.get('system').upper(), {}).get('LoginBooster', [])
+            if len(nodes) > 0:
+                # get system list ... choose one ... use it
+                node = random.choice(nodes)
+                app_logger.trace("uuidcode={} - Use random Booster Node: {}".format(uuidcode, node))
                 job['Login node'] = node
         elif 'LoginNodeVis' in unicorex_info.get(request_json.get('system').upper(), {}).keys():
             # this system supports vis nodes. So we have to set the non vis nodes explicitly
@@ -205,7 +212,7 @@ def create_unicore8_job_dashboard(app_logger, uuidcode, request_json, project, u
     ux_notify_server_name = "{}_{}_{}".format(len(uuidcode), uuidcode, request_json.get('Environment', {}).get('JUPYTERHUB_SERVER_NAME'))
     ux_notify = ux_notify.replace('<user>', escapedusername).replace('<server>', ux_notify_server_name)
     job['Notification'] = ux_notify
-    if request_json.get('partition') in ['LoginNode', 'LoginNodeVis']:
+    if request_json.get('partition') in ['LoginNode', 'LoginNodeVis', 'LoginBooster']:
         job['Executable'] = '/bin/bash'
         job['Arguments'] = ['.start.sh']
         job['Job type'] = 'interactive'
@@ -215,6 +222,13 @@ def create_unicore8_job_dashboard(app_logger, uuidcode, request_json, project, u
                 # get system list ... choose one ... use it
                 node = random.choice(nodes)
                 app_logger.trace("uuidcode={} - Use random VIS Node: {}".format(uuidcode, node))
+                job['Login node'] = node
+        elif request_json.get('partition') in ['LoginBooster']:
+            nodes = unicorex_info.get(request_json.get('system').upper(), {}).get('LoginBooster', [])
+            if len(nodes) > 0:
+                # get system list ... choose one ... use it
+                node = random.choice(nodes)
+                app_logger.trace("uuidcode={} - Use random Booster Node: {}".format(uuidcode, node))
                 job['Login node'] = node
         elif 'LoginNodeVis' in unicorex_info.get(request_json.get('system').upper(), {}).keys():
             # this system supports vis nodes. So we have to set the non vis nodes explicitly
