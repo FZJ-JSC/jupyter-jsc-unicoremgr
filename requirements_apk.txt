@@ -1,0 +1,6 @@
+bash
+linux-headers
+mailcap
+openssl-dev
+pcre-dev
+uuidgen

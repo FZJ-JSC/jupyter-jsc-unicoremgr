@@ -1,3 +1,4 @@
+tests/local_setup
 config/*
 !config/cicd
 keys
@@ -13,10 +14,10 @@ uwsgi.local.ini
 *.log
 *.pot
 *.pyc
-__pycache__
-db.sqlite3*
-media
-static
+web/__pycache__
+web/db.sqlite3*
+web/media
+web/static
 
 # Backup files # 
 *.bak 

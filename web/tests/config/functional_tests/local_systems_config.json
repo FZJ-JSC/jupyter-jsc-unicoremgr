@@ -1,0 +1,85 @@
+{
+  "systems":
+  {
+  "DEMO-SITE":
+  {
+    "backend_id_env_name": "JUPYTER_BACKEND_ID",
+    "max_start_attempts": 3,
+    "site_url": "https://localhost:8080/DEMO-SITE/rest/core",
+    "remote_nodes": ["demo_site"],
+    "remote_nodes_mapping": {
+      "demo_site": "localhost",
+      "juwels04": "jwlogin04i"
+    },
+    "remote_node_env_key": "JUPYTERJSC_REMOTE_NODE",
+    "pyunicore":
+    {
+      "job_archive": "/tmp/job-archive",
+      "transport": {
+        "certificate_path": false,
+        "oidc": true,
+        "timeout": 120,
+        "set_preferences": true
+      },
+      "cleanup": {
+        "enabled": true,
+        "tags": ["Jupyter-JSC"],
+        "max_per_start": 2
+      },
+      "job_description":
+      {
+        "base_directory": "tests/config/job_descriptions",
+        "template_filename": "job_description.json.template",
+        "replace_indicators": ["<", ">"],
+        "input": {
+          "directory_name": "input",
+          "skip_prefixs": ["skip_"],
+          "skip_suffixs": [".swp"]
+        },
+        "hooks": {
+          "load_project_specific_kernel": {
+            "project": ["training1904"],
+            "partition": ["devel"]
+          }
+        },
+        "input_directory_name": "input",
+        "resource_mapping":{
+          "resource_nodes": "Nodes",
+          "resource_Runtime": "Runtime",
+          "resource_gpus": "GPUs"
+        },
+        "interactive_partitions":
+        {
+          "LoginNode": "localost"
+        },
+        "unicore_keywords":
+        {
+          "type_key": "Job type",
+          "interactive": {
+            "type_value": "interactive",
+            "node_key": "Login node"
+          },
+          "normal": {
+            "type_value": "normal",
+            "resources_key": "Resources",
+            "queue_key": "Queue",
+            "set_queue": false
+          },
+          "imports_key": "Imports",
+          "environment_key": "Environment",
+          "skip_environments": ["JUPYTERHUB_API_TOKEN", "JPY_API_TOKEN"]
+        }
+      }
+    }
+  }
+  },
+  "vo": {
+  },
+  "remote_node": {
+    "url": "https://localhost:8040/api/remote/",
+    "cert_path": false,
+    "attempts_per_node": 1
+  },
+  "error_messages": {
+  }
+}
