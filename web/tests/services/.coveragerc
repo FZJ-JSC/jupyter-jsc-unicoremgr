@@ -1,0 +1,8 @@
+[run]
+source = services
+omit =
+   tests/services/*tests.py
+
+[report]
+show_missing = True
+skip_covered = True

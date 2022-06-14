@@ -1,0 +1,7 @@
+{
+  "DEMO-SITE": {
+    "pyunicore": {
+      "site_url": "http://unicore-test:9112/DEMO-SITE/rest/core"
+    }
+  }
+}
