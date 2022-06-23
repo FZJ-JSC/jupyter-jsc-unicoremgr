@@ -260,6 +260,25 @@ def _jd_insert_job_type(config, initial_data, jd):
         ):
             if key in initial_data["user_options"].keys():
                 jd[resources_key][new_key] = initial_data["user_options"][key]
+        # Add reservation if any given
+        user_options_reservation_key = (
+            config.get("systems", {})
+            .get(initial_data["user_options"]["system"], {})
+            .get("pyunicore", {})
+            .get("job_description", {})
+            .get("normal", {})
+            .get("user_options_reservation_key", "reservation")
+        )
+        if user_options_reservation_key in initial_data["user_options"].keys():
+            reservation_key = (
+                config.get("systems", {})
+                .get(initial_data["user_options"]["system"], {})
+                .get("pyunicore", {})
+                .get("job_description", {})
+                .get("normal", {})
+                .get("reservation_key", "Reservation")
+            )
+            jd[resources_key][reservation_key] = initial_data["user_options"][user_options_reservation_key]
     return jd
 
 
