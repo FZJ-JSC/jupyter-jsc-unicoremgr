@@ -1,4 +1,5 @@
 import copy
+import html
 import json
 import logging
 import os
@@ -589,6 +590,7 @@ def _prettify_error_logs(log_list, join_s, lines, summary):
         logs_s = join_s.join(log_list_short)
     else:
         logs_s = log_list
+    logs_s = html.escape(logs_s)
     return f"<details><summary>{summary}</summary>{logs_s}</details>"
 
 
