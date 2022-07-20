@@ -21,6 +21,7 @@ from .mocks import config_mock
 
 
 class JobDescriptionTests(APITestCase):
+    jhub_credential = "authorized"
     config = {
         "systems": {
             "DEMO-SITE": {
@@ -99,9 +100,11 @@ class JobDescriptionTests(APITestCase):
     }
 
     def test__jd_template(self):
-        jd_template = pyunicore._jd_template(self.config, self.request_data_simple)
+        jd_template = pyunicore._jd_template(
+            self.config, self.jhub_credential, self.request_data_simple
+        )
         with open(
-            "web/tests/config/job_descriptions/JupyterLab/simple/DEMO-SITE/job_description.json.template",
+            f"web/tests/config/job_descriptions/{self.jhub_credential}/JupyterLab/simple/DEMO-SITE/job_description.json.template",
             "r",
         ) as f:
             jd_template_manual = json.load(f)
@@ -111,7 +114,7 @@ class JobDescriptionTests(APITestCase):
         data = copy.deepcopy(self.request_data_simple)
         data["user_options"]["service"] = "JupyterLab/simple-replace"
         data["env"] = {"env_REPLACE_ME": "5"}
-        jd_template = pyunicore._jd_template(self.config, data)
+        jd_template = pyunicore._jd_template(self.config, self.jhub_credential, data)
         jd = pyunicore._jd_replace(self.config, data, jd_template)
         self.assertEqual(jd["Arguments"], ["Hello World on DEMO-SITE - 5"])
 
@@ -122,14 +125,14 @@ class JobDescriptionTests(APITestCase):
         config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
-        jd_template = pyunicore._jd_template(config, data)
+        jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
         jd = pyunicore._jd_replace(config, data, jd_template)
         self.assertEqual(jd["Arguments"], ["Hello World on DEMO-SITE"])
 
     def test__jd_insert_job_type_interactive(self):
         data = copy.deepcopy(self.request_data_simple)
         data["user_options"]["partition"] = "LoginNode"
-        jd_template = pyunicore._jd_template(self.config, data)
+        jd_template = pyunicore._jd_template(self.config, self.jhub_credential, data)
         jd = pyunicore._jd_insert_job_type(self.config, data, jd_template)
         job_type_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
             "job_description"
@@ -154,7 +157,7 @@ class JobDescriptionTests(APITestCase):
         jhub_resource_gpus_value = "4"
         data["user_options"]["partition"] = "devel"
         data["user_options"][jhub_resource_gpus_key] = jhub_resource_gpus_value
-        jd_template = pyunicore._jd_template(self.config, data)
+        jd_template = pyunicore._jd_template(self.config, self.jhub_credential, data)
         jd = pyunicore._jd_insert_job_type(self.config, data, jd_template)
         job_type_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
             "job_description"
@@ -189,7 +192,7 @@ class JobDescriptionTests(APITestCase):
         jhub_resource_gpus_value = "4"
         data["user_options"]["partition"] = "devel"
         data["user_options"][jhub_resource_gpus_key] = jhub_resource_gpus_value
-        jd_template = pyunicore._jd_template(config, data)
+        jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
         jd = pyunicore._jd_insert_job_type(config, data, jd_template)
         job_type_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
             "job_description"
@@ -220,8 +223,10 @@ class JobDescriptionTests(APITestCase):
         config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
             "project_kernel"
         ] = {"project": "myproject"}
-        jd_template = pyunicore._jd_template(config, data)
-        jd = pyunicore._jd_add_input_files(config, data, jd_template)
+        jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
+        jd = pyunicore._jd_add_input_files(
+            config, self.jhub_credential, data, jd_template
+        )
         imports = jd[
             config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
                 "unicore_keywords"
@@ -248,8 +253,10 @@ class JobDescriptionTests(APITestCase):
         config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
             "project_kernel"
         ] = {"project": "myproject"}
-        jd_template = pyunicore._jd_template(config, data)
-        jd = pyunicore._jd_add_input_files(config, data, jd_template)
+        jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
+        jd = pyunicore._jd_add_input_files(
+            config, self.jhub_credential, data, jd_template
+        )
         imports = jd[
             config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
                 "unicore_keywords"
@@ -276,8 +283,10 @@ class JobDescriptionTests(APITestCase):
         config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
             "project_kernel"
         ] = {"project": "myproject"}
-        jd_template = pyunicore._jd_template(config, data)
-        jd = pyunicore._jd_add_input_files(config, data, jd_template)
+        jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
+        jd = pyunicore._jd_add_input_files(
+            config, self.jhub_credential, data, jd_template
+        )
         imports = jd[
             config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
                 "unicore_keywords"
@@ -307,8 +316,10 @@ class JobDescriptionTests(APITestCase):
         config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
             "project_kernel"
         ] = {"project": "myproject"}
-        jd_template = pyunicore._jd_template(config, data)
-        jd = pyunicore._jd_add_input_files(config, data, jd_template)
+        jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
+        jd = pyunicore._jd_add_input_files(
+            config, self.jhub_credential, data, jd_template
+        )
         imports = jd[
             config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
                 "unicore_keywords"
@@ -340,7 +351,7 @@ class JobDescriptionTests(APITestCase):
         config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
             "project_kernel"
         ] = {"project": "myproject"}
-        jd = pyunicore._get_job_description(config, data, {})
+        jd = pyunicore._get_job_description(config, self.jhub_credential, data, {})
         imports = jd[
             config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
                 "unicore_keywords"
@@ -376,7 +387,7 @@ class JobDescriptionTests(APITestCase):
                 }
             }
         }
-        jd = pyunicore._get_job_description(config, data, {})
+        jd = pyunicore._get_job_description(config, self.jhub_credential, data, {})
         imports = jd["Imports"]
         self.assertEqual(len(imports), 1)
         self.assertEqual(imports[0]["From"], "inline://dummy")
@@ -422,7 +433,9 @@ class JobDescriptionTests(APITestCase):
                 }
             }
         }
-        jd = pyunicore._get_job_description(config, simple_request_data, {})
+        jd = pyunicore._get_job_description(
+            config, self.jhub_credential, simple_request_data, {}
+        )
         imports = jd["Imports"]
         self.assertEqual(len(imports), 1)
         self.assertEqual(imports[0]["From"], "inline://dummy")
@@ -555,7 +568,7 @@ class PyUnicoreTests(JobDescriptionTests):
         custom_headers = {"access-token": data["auth_state"]["access_token"]}
 
         result = pyunicore.start_service(
-            config, data, instance_dict, custom_headers, {}
+            config, data, instance_dict, custom_headers, self.jhub_credential, {}
         )
         resource_url = result["resource_url"]
 
@@ -603,7 +616,7 @@ class PyUnicoreTests(JobDescriptionTests):
         custom_headers = {"access-token": data["auth_state"]["access_token"]}
 
         result = pyunicore.start_service(
-            config, data, instance_dict, custom_headers, {}
+            config, data, instance_dict, custom_headers, self.jhub_credential, {}
         )
         resource_url = result["resource_url"]
         self.assertTrue(mocked_new_job.called)
@@ -665,7 +678,9 @@ class PyUnicoreTests(JobDescriptionTests):
         }
         custom_headers = {"access-token": data["auth_state"]["access_token"]}
 
-        ret = common.start_service(instance_dict, data, custom_headers, {})
+        ret = common.start_service(
+            instance_dict, data, custom_headers, self.jhub_credential, {}
+        )
         resource_url = ret["resource_url"]
         self.assertTrue(
             resource_url.startswith(

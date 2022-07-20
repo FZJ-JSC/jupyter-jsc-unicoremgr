@@ -14,7 +14,9 @@ log = logging.getLogger(LOGGER_NAME)
 assert log.__class__.__name__ == "ExtraLoggerClass"
 
 
-def start_service(config, initial_data, instance_dict, custom_headers, logs_extra):
+def start_service(
+    config, initial_data, instance_dict, custom_headers, jhub_credential, logs_extra
+):
     log.debug("Start pyunicore", extra=logs_extra)
     job = None
     try:
@@ -25,7 +27,7 @@ def start_service(config, initial_data, instance_dict, custom_headers, logs_extr
             logs_extra=logs_extra,
         )
         job_description = _get_job_description(
-            config, initial_data, logs_extra=logs_extra
+            config, jhub_credential, initial_data, logs_extra=logs_extra
         )
         job = client.new_job(job_description)
         resource_url = job.resource_url
@@ -59,7 +61,10 @@ def start_service(config, initial_data, instance_dict, custom_headers, logs_extr
         raise MgrException(*e_args)
 
 
-def _jd_template(config, initial_data):
+def _jd_template(config, jhub_credential, initial_data):
+    jhub_credential_mapped = config.get("credential_mapping", {}).get(
+        jhub_credential, jhub_credential
+    )
     base_dir = (
         config.get("systems", {})
         .get(initial_data["user_options"]["system"], {})
@@ -76,6 +81,7 @@ def _jd_template(config, initial_data):
     )
     template_path = os.path.join(
         base_dir,
+        jhub_credential_mapped,
         initial_data["user_options"]["service"],
         initial_data["user_options"]["system"],
         template_filename,
@@ -279,11 +285,16 @@ def _jd_insert_job_type(config, initial_data, jd):
                 .get("normal", {})
                 .get("reservation_key", "Reservation")
             )
-            jd[resources_key][reservation_key] = initial_data["user_options"][user_options_reservation_key]
+            jd[resources_key][reservation_key] = initial_data["user_options"][
+                user_options_reservation_key
+            ]
     return jd
 
 
-def _jd_add_input_files(config, initial_data, jd, logs_extra={}):
+def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}):
+    jhub_credential_mapped = config.get("credential_mapping", {}).get(
+        jhub_credential, jhub_credential
+    )
     base_dir = (
         config.get("systems", {})
         .get(initial_data["user_options"]["system"], {})
@@ -301,6 +312,7 @@ def _jd_add_input_files(config, initial_data, jd, logs_extra={}):
     )
     input_dir = os.path.join(
         base_dir,
+        jhub_credential_mapped,
         initial_data["user_options"]["service"],
         initial_data["user_options"]["system"],
         input_dir_name,
@@ -460,13 +472,15 @@ def _jd_add_input_files(config, initial_data, jd, logs_extra={}):
     return jd
 
 
-def _get_job_description(config, initial_data, logs_extra):
+def _get_job_description(config, jhub_credential, initial_data, logs_extra):
     log.trace("Create job_description", extra=logs_extra)
-    jd = _jd_template(config, initial_data)
+    jd = _jd_template(config, jhub_credential, initial_data)
     jd = _jd_add_initial_data_env(config, initial_data, jd, logs_extra)
     jd = _jd_replace(config, initial_data, jd)
     jd = _jd_insert_job_type(config, initial_data, jd)
-    jd = _jd_add_input_files(config, initial_data, jd, logs_extra=logs_extra)
+    jd = _jd_add_input_files(
+        config, jhub_credential, initial_data, jd, logs_extra=logs_extra
+    )
     jd_logs_extra = copy.deepcopy(logs_extra)
     jd_logs_extra.update({"jobs_description": jd})
     log.trace("Create job description... done", extra=jd_logs_extra)

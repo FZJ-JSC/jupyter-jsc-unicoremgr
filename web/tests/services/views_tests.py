@@ -7,7 +7,9 @@ from tests.user_credentials import mocked_requests_post_running
 from tests.user_credentials import UserCredentials
 
 from .mocks import config_mock
+from .mocks import config_mock_mapped
 from .mocks import mocked_exception
+from .mocks import mocked_new_job
 from .mocks import mocked_pass
 from .mocks import mocked_pyunicore_client_init
 from .mocks import mocked_pyunicore_job_init
@@ -80,6 +82,70 @@ class ServiceViewTests(UserCredentials):
         )
         self.assertEqual(r.status_code, 201)
         self.assertEqual(len(r.data["servername"]), 32)
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_init,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(
+        target="tests.services.mocks.MockClient.new_job", side_effect=mocked_new_job
+    )
+    @mock.patch(target="services.utils.common._config", side_effect=config_mock_mapped)
+    def test_create_mapped(
+        self,
+        config_mocked,
+        new_job_mocked,
+        transport_mocked,
+        client_mocked,
+        mocked_requests,
+    ):
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(len(r.data["servername"]), 32)
+        self.assertEqual(new_job_mocked.call_args.args[0]["Executable"], "mapped")
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_init,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(
+        target="tests.services.mocks.MockClient.new_job", side_effect=mocked_new_job
+    )
+    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    def test_create_not_mapped(
+        self,
+        config_mocked,
+        new_job_mocked,
+        transport_mocked,
+        client_mocked,
+        mocked_requests,
+    ):
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(len(r.data["servername"]), 32)
+        self.assertNotEqual(new_job_mocked.call_args.args[0]["Executable"], "mapped")
 
     @mock.patch(
         target="requests.post",
