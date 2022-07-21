@@ -47,6 +47,7 @@ class ServicesViewSet(
             serializer.validated_data,
             serializer.initial_data,
             custom_headers,
+            self.request.user.username,
             logs_extra,
         )
         if not start_service_values:

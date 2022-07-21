@@ -12,7 +12,9 @@ log = logging.getLogger(LOGGER_NAME)
 assert log.__class__.__name__ == "ExtraLoggerClass"
 
 
-def start_service(validated_data, initial_data, custom_headers, logs_extra):
+def start_service(
+    validated_data, initial_data, custom_headers, jhub_credential, logs_extra
+):
     log.debug("Service start", extra=logs_extra)
 
     config = _config()
@@ -23,6 +25,7 @@ def start_service(validated_data, initial_data, custom_headers, logs_extra):
             initial_data,
             validated_data,
             custom_headers,
+            jhub_credential,
             logs_extra=logs_extra,
         )
         log.info(f"Service start finished - {ret}", extra=logs_extra)
