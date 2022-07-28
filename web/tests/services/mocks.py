@@ -5,6 +5,13 @@ import uuid
 def config_mock():
     return {
         "systems": {
+            "mapping": {
+                "replace_stage_specific": {
+                    "stage1": {"stage_stuff": "stage1"},
+                    "stage2": {"stage_stuff": "stage2"},
+                },
+                "replace_system_specific": {"DEMO-SITE": {}, "SYSTEM2": {}},
+            },
             "DEMO-SITE": {
                 "backend_id_env_name": "JUPYTER_BACKEND_ID",
                 "site_url": "https://localhost:8080/DEMO-SITE/rest/core",
@@ -60,7 +67,7 @@ def config_mock():
                         },
                     },
                 },
-            }
+            },
         }
     }
 
