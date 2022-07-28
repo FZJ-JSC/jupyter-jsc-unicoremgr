@@ -214,7 +214,7 @@ def _jd_insert_job_type(config, initial_data, jd):
     )
     if initial_data["user_options"]["partition"] in (
         config.get("systems", {})
-        .get(mapped_system, {})
+        .get(initial_data["user_options"]["system"], {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("interactive_partitions", {})
@@ -240,7 +240,7 @@ def _jd_insert_job_type(config, initial_data, jd):
         )
         interactive_node_value = (
             config.get("systems", {})
-            .get(mapped_system, {})
+            .get(initial_data["user_options"]["system"], {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("interactive_partitions", {})
@@ -521,9 +521,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             )
         for hook_name, hook_infos in (
             config.get("systems", {})
-            .get(mapped_system, {})
-            .get("pyunicore", {})
-            .get("job_description", {})
+            .get(initial_data["user_options"]["system"], {})
             .get("hooks", {})
             .items()
         ):
@@ -641,6 +639,16 @@ def stop_service(
 ):
     log.debug("Service stop pyunicore", extra=logs_extra)
 
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            instance_dict["user_options"]["system"],
+            instance_dict["user_options"]["system"],
+        )
+    )
+
     download, delete = get_download_delete(config, instance_dict, logs_extra)
     try:
         log.debug(
@@ -659,7 +667,7 @@ def stop_service(
                 instance_dict["servername"],
                 config,
                 job,
-                instance_dict["user_options"]["system"],
+                mapped_system,
                 logs_extra=logs_extra,
             )
 
@@ -759,37 +767,46 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         custom_headers,
         logs_extra=logs_extra,
     )
-    if custom_headers.get("DOWNLOAD", "false").lower() == "true":
-        _download_service(
-            config, job, instance_dict["user_options"]["system"], logs_extra=logs_extra
+
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            instance_dict["user_options"]["system"],
+            instance_dict["user_options"]["system"],
         )
+    )
+
+    if custom_headers.get("DOWNLOAD", "false").lower() == "true":
+        _download_service(config, job, mapped_system, logs_extra=logs_extra)
     running = job.is_running()
     log.trace(f"Get Service status - running: {running}", extra=logs_extra)
     if not running:
         # Get useful output for user
         unicore_detailed_error_join = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("detailed_error_join", "")
         )
         unicore_logs_lines = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_logs", {})
             .get("lines", 3)
         )
         unicore_logs_join = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_logs", {})
             .get("join", "<br>")
         )
         unicore_logs_summary = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_logs", {})
             .get("summary", "&nbsp&nbsp&nbsp&nbspUNICORE logs:")
@@ -797,28 +814,28 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
 
         unicore_stdout_lines = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stdout", {})
             .get("lines", 5)
         )
         unicore_stdout_join = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stdout", {})
             .get("join", "<br>")
         )
         unicore_stdout_max_bytes = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stdout", {})
             .get("max_bytes", 4096)
         )
         unicore_stdout_summary = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stdout", {})
             .get("summary", "&nbsp&nbsp&nbsp&nbspJob stdout:")
@@ -826,28 +843,28 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
 
         unicore_stderr_lines = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stderr", {})
             .get("lines", 5)
         )
         unicore_stderr_join = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stderr", {})
             .get("join", "<br>")
         )
         unicore_stderr_max_bytes = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stderr", {})
             .get("max_bytes", 4096)
         )
         unicore_stderr_summary = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stderr", {})
             .get("summary", "&nbsp&nbsp&nbsp&nbspJob stderr:")
@@ -907,30 +924,39 @@ def _get_transport(
 ):
     log.trace("pyunicore - get transport", extra=logs_extra)
     auth_token = custom_headers["access-token"]
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            instance_dict["user_options"]["system"],
+            instance_dict["user_options"]["system"],
+        )
+    )
     oidc = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("transport", {})
         .get("oidc", True)
     )
     certificate_path = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("transport", {})
         .get("certificate_path", False)
     )
     timeout = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("transport", {})
         .get("timeout", 120)
     )
     set_preferences = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("transport", {})
         .get("set_preferences", True)
