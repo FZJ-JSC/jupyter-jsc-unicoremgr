@@ -24,8 +24,18 @@ class JobDescriptionTests(APITestCase):
     jhub_credential = "authorized"
     config = {
         "systems": {
+            "mapping": {"system": {"DEMO-SITE": "default_system"}},
             "DEMO-SITE": {
                 "site_url": "https://unicore-test.svc:9112/DEMO-SITE/rest/core",
+                "hooks": {
+                    "load_project_specific_kernel": {
+                        "project": ["demoproject2"],
+                        "partition": ["LoginNode"],
+                    }
+                },
+                "interactive_partitions": {"LoginNode": "localhost"},
+            },
+            "default_system": {
                 "pyunicore": {
                     "job_archive": "/tmp/job-archive",
                     "transport": {
@@ -48,19 +58,12 @@ class JobDescriptionTests(APITestCase):
                             "skip_prefixs": ["skip_"],
                             "skip_suffixs": [".swp"],
                         },
-                        "hooks": {
-                            "load_project_specific_kernel": {
-                                "project": ["demoproject2"],
-                                "partition": ["LoginNode"],
-                            }
-                        },
                         "input_directory_name": "input",
                         "resource_mapping": {
                             "resource_nodes": "Nodes",
                             "resource_Runtime": "Runtime",
                             "resource_gpus": "GPUs",
                         },
-                        "interactive_partitions": {"LoginNode": "localhost"},
                         "unicore_keywords": {
                             "type_key": "Job type",
                             "interactive": {
@@ -83,8 +86,9 @@ class JobDescriptionTests(APITestCase):
                         },
                     },
                 },
-            }
+            },
         },
+        "credential_mapping": {"authorized": "default_credential"},
         "vos": {},
         "error_messages": {},
     }
@@ -104,7 +108,7 @@ class JobDescriptionTests(APITestCase):
             self.config, self.jhub_credential, self.request_data_simple
         )
         with open(
-            f"web/tests/config/job_descriptions/{self.jhub_credential}/JupyterLab/simple/DEMO-SITE/job_description.json.template",
+            "web/tests/config/job_descriptions/default_credential/JupyterLab/simple/default_system/job_description.json.template",
             "r",
         ) as f:
             jd_template_manual = json.load(f)
@@ -122,7 +126,7 @@ class JobDescriptionTests(APITestCase):
         data = copy.deepcopy(self.request_data_simple)
         data["user_options"]["service"] = "JupyterLab/simple-replace-custom-indicators"
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
         jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
@@ -134,21 +138,21 @@ class JobDescriptionTests(APITestCase):
         data["user_options"]["partition"] = "LoginNode"
         jd_template = pyunicore._jd_template(self.config, self.jhub_credential, data)
         jd = pyunicore._jd_insert_job_type(self.config, data, jd_template)
-        job_type_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        job_type_key = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["type_key"]
-        job_type_value = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        job_type_value = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["interactive"]["type_value"]
-        interactive_node_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        interactive_node_key = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["interactive"]["node_key"]
         self.assertEqual(jd[job_type_key], job_type_value)
         self.assertEqual(
             jd[interactive_node_key],
-            self.config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
-                "interactive_partitions"
-            ][data["user_options"]["partition"]],
+            self.config["systems"]["DEMO-SITE"]["interactive_partitions"][
+                data["user_options"]["partition"]
+            ],
         )
 
     def test__jd_insert_job_type_normal(self):
@@ -159,19 +163,19 @@ class JobDescriptionTests(APITestCase):
         data["user_options"][jhub_resource_gpus_key] = jhub_resource_gpus_value
         jd_template = pyunicore._jd_template(self.config, self.jhub_credential, data)
         jd = pyunicore._jd_insert_job_type(self.config, data, jd_template)
-        job_type_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        job_type_key = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["type_key"]
-        job_type_value = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        job_type_value = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["normal"]["type_value"]
-        resources_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        resources_key = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["normal"]["resources_key"]
-        queue_key = self.config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
-            "unicore_keywords"
-        ]["normal"]["queue_key"]
-        unicore_resource_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        queue_key = self.config["systems"]["default_system"]["pyunicore"][
+            "job_description"
+        ]["unicore_keywords"]["normal"]["queue_key"]
+        unicore_resource_key = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["resource_mapping"][jhub_resource_gpus_key]
         self.assertEqual(jd[job_type_key], job_type_value)
@@ -184,7 +188,7 @@ class JobDescriptionTests(APITestCase):
 
     def test__jd_insert_job_type_normal_set_queue_false(self):
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "unicore_keywords"
         ]["normal"]["set_queue"] = False
         data = copy.deepcopy(self.request_data_simple)
@@ -194,19 +198,19 @@ class JobDescriptionTests(APITestCase):
         data["user_options"][jhub_resource_gpus_key] = jhub_resource_gpus_value
         jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
         jd = pyunicore._jd_insert_job_type(config, data, jd_template)
-        job_type_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        job_type_key = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["type_key"]
-        job_type_value = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        job_type_value = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["normal"]["type_value"]
-        resources_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        resources_key = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["unicore_keywords"]["normal"]["resources_key"]
-        queue_key = self.config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
-            "unicore_keywords"
-        ]["normal"]["queue_key"]
-        unicore_resource_key = self.config["systems"]["DEMO-SITE"]["pyunicore"][
+        queue_key = self.config["systems"]["default_system"]["pyunicore"][
+            "job_description"
+        ]["unicore_keywords"]["normal"]["queue_key"]
+        unicore_resource_key = self.config["systems"]["default_system"]["pyunicore"][
             "job_description"
         ]["resource_mapping"][jhub_resource_gpus_key]
         self.assertEqual(jd[job_type_key], job_type_value)
@@ -217,25 +221,25 @@ class JobDescriptionTests(APITestCase):
         data["user_options"]["service"] = "JupyterLab/simple-replace-custom-indicators"
         data["user_options"]["project"] = "myproject"
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
-            "project_kernel"
-        ] = {"project": "myproject"}
+        config["systems"]["DEMO-SITE"]["hooks"]["project_kernel"] = {
+            "project": "myproject"
+        }
         jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
         jd = pyunicore._jd_add_input_files(
             config, self.jhub_credential, data, jd_template
         )
         imports = jd[
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_key"]
         ]
         self.assertEqual(len(imports), 1)
         self.assertEqual(
             imports[0]["From"],
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_from_value"],
         )
@@ -247,25 +251,25 @@ class JobDescriptionTests(APITestCase):
         data["user_options"]["service"] = "JupyterLab/simple-replace-custom-indicators"
         data["user_options"]["project"] = "myproject1"
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
-            "project_kernel"
-        ] = {"project": "myproject"}
+        config["systems"]["DEMO-SITE"]["hooks"]["project_kernel"] = {
+            "project": "myproject"
+        }
         jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
         jd = pyunicore._jd_add_input_files(
             config, self.jhub_credential, data, jd_template
         )
         imports = jd[
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_key"]
         ]
         self.assertEqual(len(imports), 1)
         self.assertEqual(
             imports[0]["From"],
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_from_value"],
         )
@@ -277,25 +281,25 @@ class JobDescriptionTests(APITestCase):
         data["user_options"]["service"] = "JupyterLab/simple-replace-custom-indicators"
         data["user_options"]["project"] = "myproject1"
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
-            "project_kernel"
-        ] = {"project": "myproject"}
+        config["systems"]["DEMO-SITE"]["hooks"]["project_kernel"] = {
+            "project": "myproject"
+        }
         jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
         jd = pyunicore._jd_add_input_files(
             config, self.jhub_credential, data, jd_template
         )
         imports = jd[
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_key"]
         ]
         self.assertEqual(len(imports), 1)
         self.assertEqual(
             imports[0]["From"],
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_from_value"],
         )
@@ -310,25 +314,25 @@ class JobDescriptionTests(APITestCase):
         data["user_options"]["service"] = "JupyterLab/simple-replace-custom-indicators"
         data["env"] = {"JUPYTERHUB_USER_ID": "1"}
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
-            "project_kernel"
-        ] = {"project": "myproject"}
+        config["systems"]["DEMO-SITE"]["hooks"]["project_kernel"] = {
+            "project": "myproject"
+        }
         jd_template = pyunicore._jd_template(config, self.jhub_credential, data)
         jd = pyunicore._jd_add_input_files(
             config, self.jhub_credential, data, jd_template
         )
         imports = jd[
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_key"]
         ]
         self.assertEqual(len(imports), 1)
         self.assertEqual(
             imports[0]["From"],
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_from_value"],
         )
@@ -345,22 +349,22 @@ class JobDescriptionTests(APITestCase):
         data["user_options"]["partition"] = "devel"
         data["env"] = {"JUPYTERHUB_USER_ID": "1"}
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
-            "project_kernel"
-        ] = {"project": "myproject"}
+        config["systems"]["DEMO-SITE"]["hooks"]["project_kernel"] = {
+            "project": "myproject"
+        }
         jd = pyunicore._get_job_description(config, self.jhub_credential, data, {})
         imports = jd[
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_key"]
         ]
         self.assertEqual(len(imports), 1)
         self.assertEqual(
             imports[0]["From"],
-            config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+            config["systems"]["default_system"]["pyunicore"]["job_description"][
                 "unicore_keywords"
             ]["imports_from_value"],
         )
@@ -378,14 +382,16 @@ class JobDescriptionTests(APITestCase):
         data["env"] = {"JUPYTERHUB_USER_ID": "1"}
         config = {
             "systems": {
-                "DEMO-SITE": {
+                "mapping": {"system": {"DEMO-SITE": "default_system"}},
+                "default_system": {
                     "pyunicore": {
                         "job_description": {
                             "base_directory": "web/tests/config/job_descriptions"
                         }
                     },
-                }
-            }
+                },
+            },
+            "credential_mapping": {"authorized": "default_credential"},
         }
         jd = pyunicore._get_job_description(config, self.jhub_credential, data, {})
         imports = jd["Imports"]
@@ -418,20 +424,24 @@ class JobDescriptionTests(APITestCase):
         }
         config = {
             "systems": {
+                "mapping": {"system": {"DEMO-SITE": "default_system"}},
                 "DEMO-SITE": {
-                    "pyunicore": {
-                        "job_description": {
-                            "base_directory": "web/tests/config/job_descriptions",
-                            "hooks": {
-                                "load_project_specific_kernel": {
-                                    "project": ["demoproject"],
-                                    "partition": ["LoginNode"],
-                                }
-                            },
+                    "hooks": {
+                        "load_project_specific_kernel": {
+                            "project": ["demoproject"],
+                            "partition": ["LoginNode"],
                         }
                     },
-                }
-            }
+                },
+                "default_system": {
+                    "pyunicore": {
+                        "job_description": {
+                            "base_directory": "web/tests/config/job_descriptions"
+                        }
+                    },
+                },
+            },
+            "credential_mapping": {"authorized": "default_credential"},
         }
         jd = pyunicore._get_job_description(
             config, self.jhub_credential, simple_request_data, {}
@@ -462,7 +472,7 @@ class PyUnicoreTests(JobDescriptionTests):
     )
     def test__get_transport(self, mocked):
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["transport"] = {
+        config["systems"]["default_system"]["pyunicore"]["transport"] = {
             "set_preferences": False
         }
         data = self.get_request_data()
@@ -481,7 +491,7 @@ class PyUnicoreTests(JobDescriptionTests):
         data = self.get_request_data()
         data["auth_state"] = {"access_token": "123"}
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["transport"][
+        config["systems"]["default_system"]["pyunicore"]["transport"][
             "set_preferences"
         ] = True
         instance_dict = {"user_options": data["user_options"]}
@@ -555,12 +565,12 @@ class PyUnicoreTests(JobDescriptionTests):
         data["auth_state"] = {"access_token": "secret"}
         data["env"] = {"JUPYTERHUB_USER_ID": "1"}
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
-            "project_kernel"
-        ] = {"project": "myproject"}
+        config["systems"]["DEMO-SITE"]["hooks"]["project_kernel"] = {
+            "project": "myproject"
+        }
         instance_dict = {
             "user_options": data["user_options"],
             "servername": "random_uuid",
@@ -602,12 +612,12 @@ class PyUnicoreTests(JobDescriptionTests):
         data["auth_state"] = {"access_token": "secret"}
         data["env"] = {"JUPYTERHUB_USER_ID": "1"}
         config = copy.deepcopy(self.config)
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"][
+        config["systems"]["default_system"]["pyunicore"]["job_description"][
             "replace_indicators"
         ] = ["<??", "??>"]
-        config["systems"]["DEMO-SITE"]["pyunicore"]["job_description"]["hooks"][
-            "project_kernel"
-        ] = {"project": "myproject"}
+        config["systems"]["DEMO-SITE"]["hooks"]["project_kernel"] = {
+            "project": "myproject"
+        }
 
         instance_dict = {
             "user_options": data["user_options"],
@@ -636,15 +646,19 @@ class PyUnicoreTests(JobDescriptionTests):
     def get_minimal_config():
         return {
             "systems": {
+                "mapping": {"system": {"DEMO-SITE": "default_system"}},
                 "DEMO-SITE": {
+                    "site_url": "https://localhost:8080/DEMO-SITE/rest/core",
+                },
+                "default_system": {
                     "pyunicore": {
-                        "site_url": "https://localhost:8080/DEMO-SITE/rest/core",
                         "job_description": {
                             "base_directory": "web/tests/config/job_descriptions"
-                        },
+                        }
                     },
-                }
-            }
+                },
+            },
+            "credential_mapping": {"authorized": "default_credential"},
         }
 
     @mock.patch(
@@ -683,13 +697,11 @@ class PyUnicoreTests(JobDescriptionTests):
         )
         resource_url = ret["resource_url"]
         self.assertTrue(
-            resource_url.startswith(
-                config["systems"]["DEMO-SITE"]["pyunicore"]["site_url"]
-            )
+            resource_url.startswith(config["systems"]["DEMO-SITE"]["site_url"])
         )
         self.assertEqual(
             len(resource_url),
-            len(config["systems"]["DEMO-SITE"]["pyunicore"]["site_url"]) + 33,
+            len(config["systems"]["DEMO-SITE"]["site_url"]) + 33,
         )
 
     @mock.patch(
@@ -716,9 +728,9 @@ class PyUnicoreTests(JobDescriptionTests):
             data,
             5,
             add_to_db=True,
-            tags=self.config["systems"][data["user_options"]["system"]]["pyunicore"][
-                "cleanup"
-            ]["tags"],
+            tags=self.config["systems"]["default_system"]["pyunicore"]["cleanup"][
+                "tags"
+            ],
         )
         data["resource_url"] = global_tmp_jobs[0].resource_url
         # pyunicore._get_job(self.config, data["user_options"]["system"])

@@ -215,8 +215,6 @@ def _jd_insert_job_type(config, initial_data, jd):
     if initial_data["user_options"]["partition"] in (
         config.get("systems", {})
         .get(initial_data["user_options"]["system"], {})
-        .get("pyunicore", {})
-        .get("job_description", {})
         .get("interactive_partitions", {})
         .keys()
     ):
@@ -241,8 +239,6 @@ def _jd_insert_job_type(config, initial_data, jd):
         interactive_node_value = (
             config.get("systems", {})
             .get(initial_data["user_options"]["system"], {})
-            .get("pyunicore", {})
-            .get("job_description", {})
             .get("interactive_partitions", {})
             .get(
                 initial_data["user_options"]["partition"],
