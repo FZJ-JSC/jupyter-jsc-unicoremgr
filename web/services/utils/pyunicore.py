@@ -374,6 +374,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         .get("input", {})
         .get("skip_suffixs", [".swp"])
     )
+    system = initial_data["user_options"]["system"]
     stage = os.environ.get("STAGE", "").lower()
     if stage:
         stages_to_skip = [
@@ -385,6 +386,51 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             if x != stage
         ]
         skip_prefixs.extend(stages_to_skip)
+
+        # Same stage but different credential
+        stages_credential_to_skip = [
+            f"{stage}_{x}_"
+            for x in config.get("systems", {})
+            .get("mapping", {})
+            .get("replace_credential_specific", {})
+            .keys()
+            if x != jhub_credential
+        ]
+        skip_prefixs.extend(stages_credential_to_skip)
+
+        # Same stage but different system
+        stages_system_to_skip = [
+            f"{stage}_{x}_"
+            for x in config.get("systems", {})
+            .get("mapping", {})
+            .get("replace_system_specific", {})
+            .keys()
+            if x != system
+        ]
+        skip_prefixs.extend(stages_system_to_skip)
+
+        # Same stage and credential but different system
+        stages_credential_system_to_skip = [
+            f"{stage}_{system}_{x}_"
+            for x in config.get("systems", {})
+            .get("mapping", {})
+            .get("replace_credential_specific", {})
+            .keys()
+            if x != jhub_credential
+        ]
+        skip_prefixs.extend(stages_system_to_skip)
+
+    # Same credential but different system
+    credential_system_to_skip = [
+        f"{jhub_credential}_{x}_"
+        for x in config.get("systems", {})
+        .get("mapping", {})
+        .get("replace_system_specific", {})
+        .keys()
+        if x != system
+    ]
+    skip_prefixs.extend(credential_system_to_skip)
+
     credential_to_skip = [
         f"{x}_"
         for x in config.get("systems", {})
@@ -394,7 +440,6 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         if x != jhub_credential
     ]
     skip_prefixs.extend(credential_to_skip)
-    system = initial_data["user_options"]["system"]
     system_to_skip = [
         f"{x}_"
         for x in config.get("systems", {})
