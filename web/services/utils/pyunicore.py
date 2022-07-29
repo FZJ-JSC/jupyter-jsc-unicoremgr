@@ -65,16 +65,25 @@ def _jd_template(config, jhub_credential, initial_data):
     jhub_credential_mapped = config.get("credential_mapping", {}).get(
         jhub_credential, jhub_credential
     )
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            initial_data["user_options"]["system"],
+            initial_data["user_options"]["system"],
+        )
+    )
     base_dir = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("base_directory", "/mnt/config/job_descriptions")
     )
     template_filename = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("template_filename", "job_description.json.template")
@@ -83,7 +92,7 @@ def _jd_template(config, jhub_credential, initial_data):
         base_dir,
         jhub_credential_mapped,
         initial_data["user_options"]["service"],
-        initial_data["user_options"]["system"],
+        mapped_system,
         template_filename,
     )
     with open(template_path, "r") as f:
@@ -92,9 +101,18 @@ def _jd_template(config, jhub_credential, initial_data):
 
 
 def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            initial_data["user_options"]["system"],
+            initial_data["user_options"]["system"],
+        )
+    )
     environment_key = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("unicore_keywords", {})
@@ -102,7 +120,7 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
     )
     skip_environments = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("unicore_keywords", {})
@@ -116,7 +134,7 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
     if "certs" in initial_data.keys():
         certs_keyfile_name = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("certs", {})
@@ -124,7 +142,7 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
         )
         certs_certfile_name = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("certs", {})
@@ -132,7 +150,7 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
         )
         certs_cafile_name = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("certs", {})
@@ -147,9 +165,18 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
 
 def _jd_replace(config, initial_data, jd):
     jd_as_string = json.dumps(jd)
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            initial_data["user_options"]["system"],
+            initial_data["user_options"]["system"],
+        )
+    )
     replace_indicators = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("replace_indicators", ["<", ">"])
@@ -168,9 +195,18 @@ def _jd_replace(config, initial_data, jd):
 
 
 def _jd_insert_job_type(config, initial_data, jd):
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            initial_data["user_options"]["system"],
+            initial_data["user_options"]["system"],
+        )
+    )
     job_type_key = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("unicore_keywords", {})
@@ -179,14 +215,12 @@ def _jd_insert_job_type(config, initial_data, jd):
     if initial_data["user_options"]["partition"] in (
         config.get("systems", {})
         .get(initial_data["user_options"]["system"], {})
-        .get("pyunicore", {})
-        .get("job_description", {})
         .get("interactive_partitions", {})
         .keys()
     ):
         job_type_value = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("unicore_keywords", {})
@@ -195,7 +229,7 @@ def _jd_insert_job_type(config, initial_data, jd):
         )
         interactive_node_key = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("unicore_keywords", {})
@@ -205,8 +239,6 @@ def _jd_insert_job_type(config, initial_data, jd):
         interactive_node_value = (
             config.get("systems", {})
             .get(initial_data["user_options"]["system"], {})
-            .get("pyunicore", {})
-            .get("job_description", {})
             .get("interactive_partitions", {})
             .get(
                 initial_data["user_options"]["partition"],
@@ -218,7 +250,7 @@ def _jd_insert_job_type(config, initial_data, jd):
     else:
         normal_value = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("unicore_keywords", {})
@@ -228,7 +260,7 @@ def _jd_insert_job_type(config, initial_data, jd):
         jd[job_type_key] = normal_value
         resources_key = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("unicore_keywords", {})
@@ -237,7 +269,7 @@ def _jd_insert_job_type(config, initial_data, jd):
         )
         queue_key = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("unicore_keywords", {})
@@ -246,7 +278,7 @@ def _jd_insert_job_type(config, initial_data, jd):
         )
         set_queue = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("unicore_keywords", {})
@@ -259,7 +291,7 @@ def _jd_insert_job_type(config, initial_data, jd):
             jd[resources_key][queue_key] = initial_data["user_options"]["partition"]
         for key, new_key in (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("resource_mapping", {})
@@ -270,7 +302,7 @@ def _jd_insert_job_type(config, initial_data, jd):
         # Add reservation if any given
         user_options_reservation_key = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("normal", {})
@@ -279,7 +311,7 @@ def _jd_insert_job_type(config, initial_data, jd):
         if user_options_reservation_key in initial_data["user_options"].keys():
             reservation_key = (
                 config.get("systems", {})
-                .get(initial_data["user_options"]["system"], {})
+                .get(mapped_system, {})
                 .get("pyunicore", {})
                 .get("job_description", {})
                 .get("normal", {})
@@ -295,16 +327,25 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
     jhub_credential_mapped = config.get("credential_mapping", {}).get(
         jhub_credential, jhub_credential
     )
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            initial_data["user_options"]["system"],
+            initial_data["user_options"]["system"],
+        )
+    )
     base_dir = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("base_directory", "/mnt/config/job_descriptions")
     )
     input_dir_name = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("input", {})
@@ -314,12 +355,12 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         base_dir,
         jhub_credential_mapped,
         initial_data["user_options"]["service"],
-        initial_data["user_options"]["system"],
+        mapped_system,
         input_dir_name,
     )
     skip_prefixs = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("input", {})
@@ -327,22 +368,51 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
     )
     skip_suffixs = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("input", {})
         .get("skip_suffixs", [".swp"])
     )
+    stage = os.environ.get("STAGE", "").lower()
+    if stage:
+        stages_to_skip = [
+            f"{x}_"
+            for x in config.get("systems", {})
+            .get("mapping", {})
+            .get("replace_stage_specific", {})
+            .keys()
+            if x != stage
+        ]
+        skip_prefixs.extend(stages_to_skip)
+    credential_to_skip = [
+        f"{x}_"
+        for x in config.get("systems", {})
+        .get("mapping", {})
+        .get("replace_credential_specific", {})
+        .keys()
+        if x != jhub_credential
+    ]
+    skip_prefixs.extend(credential_to_skip)
+    system_to_skip = [
+        f"{x}_"
+        for x in config.get("systems", {})
+        .get("mapping", {})
+        .get("replace_system_specific", {})
+        .keys()
+        if x != initial_data["user_options"]["system"]
+    ]
+    skip_prefixs.extend(system_to_skip)
     replace_indicators = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("replace_indicators", ["<", ">"])
     )
     imports_from_value = (
         config.get("systems", {})
-        .get(initial_data["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("job_description", {})
         .get("unicore_keywords", {})
@@ -364,6 +434,12 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 break
         if skip:
             continue
+
+        newname = filename
+        if filename.startswith(f"{stage}_"):
+            newname = filename[len(stage) + 1 :]
+        if filename.startswith(f"{jhub_credential}_"):
+            newname = filename[len(jhub_credential) + 1 :]
         with open(os.path.join(input_dir, filename), "r") as f:
             file_data = f.read()
         for key, value in initial_data.get("user_options", {}).items():
@@ -376,11 +452,47 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 file_data = file_data.replace(
                     f"{replace_indicators[0]}{key}{replace_indicators[1]}", value
                 )
+        if stage:
+            for key, value in (
+                config.get("systems", {})
+                .get("mapping", {})
+                .get("replace_stage_specific", {})
+                .get(stage, {})
+                .items()
+            ):
+                file_data = file_data.replace(
+                    f"{replace_indicators[0]}{key}{replace_indicators[1]}",
+                    value,
+                )
+
+        # Replace credential specific keywords
+        for key, value in (
+            config.get("systems", {})
+            .get("mapping", {})
+            .get("replace_credential_specific", {})
+            .get(jhub_credential, {})
+            .items()
+        ):
+            file_data = file_data.replace(
+                f"{replace_indicators[0]}{key}{replace_indicators[1]}",
+                value,
+            )
+
+        # Replace system specific keywords
+        for key, value in (
+            config.get("systems", {})
+            .get("mapping", {})
+            .get("replace_system_specific", {})
+            .get(initial_data["user_options"]["system"], {})
+            .items()
+        ):
+            file_data = file_data.replace(
+                f"{replace_indicators[0]}{key}{replace_indicators[1]}",
+                value,
+            )
         for hook_name, hook_infos in (
             config.get("systems", {})
             .get(initial_data["user_options"]["system"], {})
-            .get("pyunicore", {})
-            .get("job_description", {})
             .get("hooks", {})
             .items()
         ):
@@ -411,12 +523,12 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 replace_string,
             )
         imports.append(
-            {"From": imports_from_value, "To": filename, "Data": file_data.strip()}
+            {"From": imports_from_value, "To": newname, "Data": file_data.strip()}
         )
     if "certs" in initial_data.keys():
         certs_keyfile_name = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("certs", {})
@@ -424,7 +536,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         )
         certs_certfile_name = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("certs", {})
@@ -432,7 +544,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         )
         certs_cafile_name = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("certs", {})
@@ -462,7 +574,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
     if imports:
         imports_key = (
             config.get("systems", {})
-            .get(initial_data["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("pyunicore", {})
             .get("job_description", {})
             .get("unicore_keywords", {})
@@ -498,6 +610,16 @@ def stop_service(
 ):
     log.debug("Service stop pyunicore", extra=logs_extra)
 
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            instance_dict["user_options"]["system"],
+            instance_dict["user_options"]["system"],
+        )
+    )
+
     download, delete = get_download_delete(config, instance_dict, logs_extra)
     try:
         log.debug(
@@ -516,7 +638,7 @@ def stop_service(
                 instance_dict["servername"],
                 config,
                 job,
-                instance_dict["user_options"]["system"],
+                mapped_system,
                 logs_extra=logs_extra,
             )
 
@@ -616,37 +738,46 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         custom_headers,
         logs_extra=logs_extra,
     )
-    if custom_headers.get("DOWNLOAD", "false").lower() == "true":
-        _download_service(
-            config, job, instance_dict["user_options"]["system"], logs_extra=logs_extra
+
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            instance_dict["user_options"]["system"],
+            instance_dict["user_options"]["system"],
         )
+    )
+
+    if custom_headers.get("DOWNLOAD", "false").lower() == "true":
+        _download_service(config, job, mapped_system, logs_extra=logs_extra)
     running = job.is_running()
     log.trace(f"Get Service status - running: {running}", extra=logs_extra)
     if not running:
         # Get useful output for user
         unicore_detailed_error_join = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("detailed_error_join", "")
         )
         unicore_logs_lines = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_logs", {})
             .get("lines", 3)
         )
         unicore_logs_join = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_logs", {})
             .get("join", "<br>")
         )
         unicore_logs_summary = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_logs", {})
             .get("summary", "&nbsp&nbsp&nbsp&nbspUNICORE logs:")
@@ -654,28 +785,28 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
 
         unicore_stdout_lines = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stdout", {})
             .get("lines", 5)
         )
         unicore_stdout_join = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stdout", {})
             .get("join", "<br>")
         )
         unicore_stdout_max_bytes = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stdout", {})
             .get("max_bytes", 4096)
         )
         unicore_stdout_summary = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stdout", {})
             .get("summary", "&nbsp&nbsp&nbsp&nbspJob stdout:")
@@ -683,28 +814,28 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
 
         unicore_stderr_lines = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stderr", {})
             .get("lines", 5)
         )
         unicore_stderr_join = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stderr", {})
             .get("join", "<br>")
         )
         unicore_stderr_max_bytes = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stderr", {})
             .get("max_bytes", 4096)
         )
         unicore_stderr_summary = (
             config.get("systems", {})
-            .get(instance_dict["user_options"]["system"], {})
+            .get(mapped_system, {})
             .get("status_information", {})
             .get("unicore_stderr", {})
             .get("summary", "&nbsp&nbsp&nbsp&nbspJob stderr:")
@@ -764,30 +895,39 @@ def _get_transport(
 ):
     log.trace("pyunicore - get transport", extra=logs_extra)
     auth_token = custom_headers["access-token"]
+    mapped_system = (
+        config.get("systems", {})
+        .get("mapping", {})
+        .get("system", {})
+        .get(
+            instance_dict["user_options"]["system"],
+            instance_dict["user_options"]["system"],
+        )
+    )
     oidc = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("transport", {})
         .get("oidc", True)
     )
     certificate_path = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("transport", {})
         .get("certificate_path", False)
     )
     timeout = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("transport", {})
         .get("timeout", 120)
     )
     set_preferences = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("transport", {})
         .get("set_preferences", True)

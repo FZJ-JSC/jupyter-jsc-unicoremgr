@@ -8,3 +8,5 @@ fi
 if [[ <hook_multiple_keys> -eq 1 ]]; then
     echo "Use multiple_keys hook"
 fi
+
+#StageSpecific: <stage_stuff>

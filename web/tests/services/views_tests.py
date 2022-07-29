@@ -1,3 +1,4 @@
+import os
 from unittest import mock
 
 from django.http.response import HttpResponse
@@ -82,70 +83,6 @@ class ServiceViewTests(UserCredentials):
         )
         self.assertEqual(r.status_code, 201)
         self.assertEqual(len(r.data["servername"]), 32)
-
-    @mock.patch(
-        target="requests.post",
-        side_effect=mocked_requests_post_running,
-    )
-    @mock.patch(
-        target="services.utils.pyunicore.pyunicore.Client",
-        side_effect=mocked_pyunicore_client_init,
-    )
-    @mock.patch(
-        target="services.utils.pyunicore.pyunicore.Transport",
-        side_effect=mocked_pyunicore_transport_init,
-    )
-    @mock.patch(
-        target="tests.services.mocks.MockClient.new_job", side_effect=mocked_new_job
-    )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock_mapped)
-    def test_create_mapped(
-        self,
-        config_mocked,
-        new_job_mocked,
-        transport_mocked,
-        client_mocked,
-        mocked_requests,
-    ):
-        url = reverse("services-list")
-        r = self.client.post(
-            url, data=self.simple_request_data, headers=self.headers, format="json"
-        )
-        self.assertEqual(r.status_code, 201)
-        self.assertEqual(len(r.data["servername"]), 32)
-        self.assertEqual(new_job_mocked.call_args.args[0]["Executable"], "mapped")
-
-    @mock.patch(
-        target="requests.post",
-        side_effect=mocked_requests_post_running,
-    )
-    @mock.patch(
-        target="services.utils.pyunicore.pyunicore.Client",
-        side_effect=mocked_pyunicore_client_init,
-    )
-    @mock.patch(
-        target="services.utils.pyunicore.pyunicore.Transport",
-        side_effect=mocked_pyunicore_transport_init,
-    )
-    @mock.patch(
-        target="tests.services.mocks.MockClient.new_job", side_effect=mocked_new_job
-    )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
-    def test_create_not_mapped(
-        self,
-        config_mocked,
-        new_job_mocked,
-        transport_mocked,
-        client_mocked,
-        mocked_requests,
-    ):
-        url = reverse("services-list")
-        r = self.client.post(
-            url, data=self.simple_request_data, headers=self.headers, format="json"
-        )
-        self.assertEqual(r.status_code, 201)
-        self.assertEqual(len(r.data["servername"]), 32)
-        self.assertNotEqual(new_job_mocked.call_args.args[0]["Executable"], "mapped")
 
     @mock.patch(
         target="requests.post",
@@ -623,3 +560,91 @@ class ServiceViewTests(UserCredentials):
             f"{url}{rg1.data[0]['servername']}/", headers=self.headers, format="json"
         )
         self.assertEqual(rd1.status_code, 204)
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_init,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(
+        target="tests.services.mocks.MockClient.new_job", side_effect=mocked_new_job
+    )
+    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch.dict(os.environ, {"STAGE": "stage1"})
+    def test_skip_replace_stage(
+        self,
+        config_mocked,
+        new_job_mocked,
+        transport_mocked,
+        client_mocked,
+        mocked_requests,
+    ):
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(len(r.data["servername"]), 32)
+        job_args = new_job_mocked.call_args.args[0]
+        start_sh = [x["Data"] for x in job_args["Imports"] if x["To"] == "start.sh"]
+        stage_specific = [
+            x.split(": ")[1]
+            for x in start_sh[0].split("\n")
+            if x.startswith("#StageSpecific: ")
+        ][0]
+        config = config_mock()
+        stage_specific_configured = (
+            config.get("systems", {})
+            .get("mapping", {})
+            .get("replace_stage_specific", {})
+            .get("stage1", {})
+            .get("stage_stuff", None)
+        )
+        self.assertEqual(stage_specific, stage_specific_configured)
+        self.assertIsNotNone(stage_specific_configured)
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_init,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(
+        target="tests.services.mocks.MockClient.new_job", side_effect=mocked_new_job
+    )
+    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch.dict(os.environ, {"STAGE": "stage1"})
+    def test_skip_other_system(
+        self,
+        config_mocked,
+        new_job_mocked,
+        transport_mocked,
+        client_mocked,
+        mocked_requests,
+    ):
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(len(r.data["servername"]), 32)
+        job_args = new_job_mocked.call_args.args[0]
+        file_txt = [x["Data"] for x in job_args["Imports"] if x["To"] == "file.txt"]
+        self.assertEqual(len(file_txt), 0)
+        file_txt = [
+            x["Data"] for x in job_args["Imports"] if x["To"] == "SYSTEM2_file.txt"
+        ]
+        self.assertEqual(len(file_txt), 0)
