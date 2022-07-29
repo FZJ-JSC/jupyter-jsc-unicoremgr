@@ -441,17 +441,17 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             newname = filename[
                 len(stage) + 1 + len(jhub_credential) + 1 + len(system) + 1 :
             ]
-        if filename.startswith(f"{stage}_{jhub_credential}_"):
+        elif filename.startswith(f"{stage}_{jhub_credential}_"):
             newname = filename[len(stage) + 1 + len(jhub_credential) + 1 :]
-        if filename.startswith(f"{stage}_{system}_"):
+        elif filename.startswith(f"{stage}_{system}_"):
             newname = filename[len(stage) + 1 + len(system) + 1 :]
-        if filename.startswith(f"{jhub_credential}_{system}_"):
+        elif filename.startswith(f"{jhub_credential}_{system}_"):
             newname = filename[len(jhub_credential) + 1 + len(system) + 1 :]
-        if filename.startswith(f"{stage}_"):
+        elif filename.startswith(f"{stage}_"):
             newname = filename[len(stage) + 1 :]
-        if filename.startswith(f"{jhub_credential}_"):
+        elif filename.startswith(f"{jhub_credential}_"):
             newname = filename[len(jhub_credential) + 1 :]
-        if filename.startswith(f"{system}_"):
+        elif filename.startswith(f"{system}_"):
             newname = filename[len(system) + 1 :]
         with open(os.path.join(input_dir, filename), "r") as f:
             file_data = f.read()
