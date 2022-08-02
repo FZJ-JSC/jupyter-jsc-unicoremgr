@@ -776,15 +776,18 @@ def _get_file_output(job, file, max_bytes):
 
 
 def _prettify_error_logs(log_list, join_s, lines, summary):
+    if type(log_list) == str:
+        log_list = log_list.split("\n")
     if type(log_list) == list:
         if lines > 0:
             log_list_short = log_list[-lines:]
         if lines < len(log_list):
             log_list_short.insert(0, "...")
-        logs_s = join_s.join(log_list_short)
+        log_list_short_escaped = list(map(lambda x: html.escape(x), log_list_short))
+        logs_s = join_s.join(log_list_short_escaped)
     else:
-        logs_s = log_list
-    logs_s = html.escape(logs_s)
+        logs_s = log_list.split()
+        logs_s = html.escape(logs_s)
     return f"<details><summary>{summary}</summary>{logs_s}</details>"
 
 
