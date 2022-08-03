@@ -813,7 +813,14 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
     )
 
     if custom_headers.get("DOWNLOAD", "false").lower() == "true":
-        _download_service(config, job, mapped_system, logs_extra=logs_extra)
+        _download_service(
+            instance_dict["id"],
+            instance_dict["servername"],
+            config,
+            job,
+            mapped_system,
+            logs_extra=logs_extra,
+        )
     running = job.is_running()
     log.trace(f"Get Service status - running: {running}", extra=logs_extra)
     if not running:
