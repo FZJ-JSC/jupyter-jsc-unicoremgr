@@ -63,10 +63,10 @@ def get_custom_headers(request_headers):
     return ret
 
 
-def get_download_delete(config, instance_dict, logs_extra):
+def get_download_delete(config, instance_dict, mapped_system, logs_extra):
     download = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("download_after_stop", False)
     )
@@ -76,7 +76,7 @@ def get_download_delete(config, instance_dict, logs_extra):
 
     delete = (
         config.get("systems", {})
-        .get(instance_dict["user_options"]["system"], {})
+        .get(mapped_system, {})
         .get("pyunicore", {})
         .get("delete_after_stop", False)
     )
