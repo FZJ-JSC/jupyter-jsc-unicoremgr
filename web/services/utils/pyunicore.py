@@ -678,7 +678,9 @@ def stop_service(
         )
     )
 
-    download, delete = get_download_delete(config, instance_dict, logs_extra)
+    download, delete = get_download_delete(
+        config, instance_dict, mapped_system, logs_extra
+    )
     try:
         log.debug(
             f"Stop pyunicore Service - Get Job: {instance_dict['resource_url']} ...",
