@@ -93,6 +93,9 @@ class ServicesSerializer(serializers.ModelSerializer):
         if instance.stop_pending:
             log.debug("Service is already stopping. Return false", extra=logs_extra)
             status = {"running": False}
+        elif "access-token" not in custom_headers.keys():
+            log.debug("No access token available. Return true", extra=logs_extra)
+            status = {"running": True}
         else:
             try:
                 status = status_service(
