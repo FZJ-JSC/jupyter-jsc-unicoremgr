@@ -376,13 +376,15 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
     )
     system = initial_data["user_options"]["system"]
     stage = os.environ.get("STAGE", "").lower()
+
+    # We will skip files that are not meant for specific configurations 
     if stage:
         stages_to_skip = [
             f"{x}_"
             for x in config.get("systems", {})
             .get("mapping", {})
-            .get("replace_stage_specific", {})
-            .keys()
+            .get("skip", {})
+            .get("stage_specific", [])
             if x != stage
         ]
         skip_prefixs.extend(stages_to_skip)
@@ -392,8 +394,8 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             f"{stage}_{x}_"
             for x in config.get("systems", {})
             .get("mapping", {})
-            .get("replace_credential_specific", {})
-            .keys()
+            .get("skip", {})
+            .get("credential_specific", [])
             if x != jhub_credential
         ]
         skip_prefixs.extend(stages_credential_to_skip)
@@ -403,8 +405,8 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             f"{stage}_{x}_"
             for x in config.get("systems", {})
             .get("mapping", {})
-            .get("replace_system_specific", {})
-            .keys()
+            .get("skip", {})
+            .get("system_specific", [])
             if x != system
         ]
         skip_prefixs.extend(stages_system_to_skip)
@@ -414,19 +416,19 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             f"{stage}_{system}_{x}_"
             for x in config.get("systems", {})
             .get("mapping", {})
-            .get("replace_credential_specific", {})
-            .keys()
+            .get("skip", {})
+            .get("credential_specific", [])
             if x != jhub_credential
         ]
-        skip_prefixs.extend(stages_system_to_skip)
+        skip_prefixs.extend(stages_credential_system_to_skip)
 
     # Same credential but different system
     credential_system_to_skip = [
         f"{jhub_credential}_{x}_"
         for x in config.get("systems", {})
         .get("mapping", {})
-        .get("replace_system_specific", {})
-        .keys()
+        .get("skip", {})
+        .get("system_specific", [])
         if x != system
     ]
     skip_prefixs.extend(credential_system_to_skip)
@@ -435,17 +437,18 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         f"{x}_"
         for x in config.get("systems", {})
         .get("mapping", {})
-        .get("replace_credential_specific", {})
-        .keys()
+        .get("skip", {})
+        .get("credential_specific", [])
         if x != jhub_credential
     ]
     skip_prefixs.extend(credential_to_skip)
+
     system_to_skip = [
         f"{x}_"
         for x in config.get("systems", {})
         .get("mapping", {})
-        .get("replace_system_specific", {})
-        .keys()
+        .get("skip", {})
+        .get("system_specific", [])
         if x != system
     ]
     skip_prefixs.extend(system_to_skip)
@@ -510,11 +513,61 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 file_data = file_data.replace(
                     f"{replace_indicators[0]}{key}{replace_indicators[1]}", value
                 )
+        # We will replace keywords with configured values.
+        # We start with the most specific replacements and follow up with the least specific ones
         if stage:
+            # Replace values specified for stage+credential+system
             for key, value in (
                 config.get("systems", {})
                 .get("mapping", {})
-                .get("replace_stage_specific", {})
+                .get("replace", {})
+                .get("stage_credential_system_specific", {})
+                .get(stage, {})
+                .get(jhub_credential, {})
+                .get(initial_data["user_options"]["system"], {})
+                .items()
+            ):
+                file_data = file_data.replace(
+                    f"{replace_indicators[0]}{key}{replace_indicators[1]}",
+                    value,
+                )
+
+            # Replace values specified for stage+credential
+            for key, value in (
+                config.get("systems", {})
+                .get("mapping", {})
+                .get("replace", {})
+                .get("stage_credential_specific", {})
+                .get(stage, {})
+                .get(jhub_credential, {})
+                .items()
+            ):
+                file_data = file_data.replace(
+                    f"{replace_indicators[0]}{key}{replace_indicators[1]}",
+                    value,
+                )
+            
+            # Replace values specified for stage+system
+            for key, value in (
+                config.get("systems", {})
+                .get("mapping", {})
+                .get("replace", {})
+                .get("stage_system_specific", {})
+                .get(stage, {})
+                .get(initial_data["user_options"]["system"], {})
+                .items()
+            ):
+                file_data = file_data.replace(
+                    f"{replace_indicators[0]}{key}{replace_indicators[1]}",
+                    value,
+                )
+            
+            # Replace values specified for stage
+            for key, value in (
+                config.get("systems", {})
+                .get("mapping", {})
+                .get("replace", {})
+                .get("stage_specific", {})
                 .get(stage, {})
                 .items()
             ):
@@ -523,24 +576,13 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                     value,
                 )
 
-        # Replace credential specific keywords
+        # Replace values specified for credential+system
         for key, value in (
             config.get("systems", {})
             .get("mapping", {})
-            .get("replace_credential_specific", {})
+            .get("replace", {})
+            .get("credential_system_specific", {})
             .get(jhub_credential, {})
-            .items()
-        ):
-            file_data = file_data.replace(
-                f"{replace_indicators[0]}{key}{replace_indicators[1]}",
-                value,
-            )
-
-        # Replace system specific keywords
-        for key, value in (
-            config.get("systems", {})
-            .get("mapping", {})
-            .get("replace_system_specific", {})
             .get(initial_data["user_options"]["system"], {})
             .items()
         ):
@@ -548,6 +590,50 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 f"{replace_indicators[0]}{key}{replace_indicators[1]}",
                 value,
             )
+
+        # Replace values specified for credential
+        for key, value in (
+            config.get("systems", {})
+            .get("mapping", {})
+            .get("replace", {})
+            .get("credential_specific", {})
+            .get(jhub_credential, {})
+            .items()
+        ):
+            file_data = file_data.replace(
+                f"{replace_indicators[0]}{key}{replace_indicators[1]}",
+                value,
+            )
+        
+        # Replace values specified for system
+        for key, value in (
+            config.get("systems", {})
+            .get("mapping", {})
+            .get("replace", {})
+            .get("system_specific", {})
+            .get(initial_data["user_options"]["system"], {})
+            .items()
+        ):
+            file_data = file_data.replace(
+                f"{replace_indicators[0]}{key}{replace_indicators[1]}",
+                value,
+            )
+        
+
+        # Hooks can be used to change file for specific user_options
+        # Example:
+        # "hooks": {
+        #   "load_project_specific_kernel": {
+        #       "project": ["hai_ds_isa", "training2223"]
+        #   }
+        # },
+        #
+        # This will replace <hook_load_project_specific_kernel> in all files with 1
+        # if initial_data["user_options"]["project"] is in ["hai_ds_isa", "training2223"].
+        # For all other projects it's replaced with 0
+        #
+        # You can combine multiple user_options. They are connected with an AND operator, so
+        # the user_options must be part of all configured lists.
         for hook_name, hook_infos in (
             config.get("systems", {})
             .get(initial_data["user_options"]["system"], {})
