@@ -384,7 +384,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             for x in config.get("systems", {})
             .get("mapping", {})
             .get("skip", {})
-            .get("stage_specific", [])
+            .get("stage", [])
             if x != stage
         ]
         skip_prefixs.extend(stages_to_skip)
@@ -395,7 +395,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             for x in config.get("systems", {})
             .get("mapping", {})
             .get("skip", {})
-            .get("credential_specific", [])
+            .get("credential", [])
             if x != jhub_credential
         ]
         skip_prefixs.extend(stages_credential_to_skip)
@@ -406,7 +406,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             for x in config.get("systems", {})
             .get("mapping", {})
             .get("skip", {})
-            .get("system_specific", [])
+            .get("system", [])
             if x != system
         ]
         skip_prefixs.extend(stages_system_to_skip)
@@ -417,7 +417,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             for x in config.get("systems", {})
             .get("mapping", {})
             .get("skip", {})
-            .get("credential_specific", [])
+            .get("credential", [])
             if x != jhub_credential
         ]
         skip_prefixs.extend(stages_credential_system_to_skip)
@@ -428,7 +428,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         for x in config.get("systems", {})
         .get("mapping", {})
         .get("skip", {})
-        .get("system_specific", [])
+        .get("system", [])
         if x != system
     ]
     skip_prefixs.extend(credential_system_to_skip)
@@ -438,7 +438,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         for x in config.get("systems", {})
         .get("mapping", {})
         .get("skip", {})
-        .get("credential_specific", [])
+        .get("credential", [])
         if x != jhub_credential
     ]
     skip_prefixs.extend(credential_to_skip)
@@ -448,7 +448,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
         for x in config.get("systems", {})
         .get("mapping", {})
         .get("skip", {})
-        .get("system_specific", [])
+        .get("system", [])
         if x != system
     ]
     skip_prefixs.extend(system_to_skip)
@@ -521,7 +521,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 config.get("systems", {})
                 .get("mapping", {})
                 .get("replace", {})
-                .get("stage_credential_system_specific", {})
+                .get("stage_credential_system", {})
                 .get(stage, {})
                 .get(jhub_credential, {})
                 .get(initial_data["user_options"]["system"], {})
@@ -537,7 +537,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 config.get("systems", {})
                 .get("mapping", {})
                 .get("replace", {})
-                .get("stage_credential_specific", {})
+                .get("stage_credential", {})
                 .get(stage, {})
                 .get(jhub_credential, {})
                 .items()
@@ -552,7 +552,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 config.get("systems", {})
                 .get("mapping", {})
                 .get("replace", {})
-                .get("stage_system_specific", {})
+                .get("stage_system", {})
                 .get(stage, {})
                 .get(initial_data["user_options"]["system"], {})
                 .items()
@@ -567,7 +567,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 config.get("systems", {})
                 .get("mapping", {})
                 .get("replace", {})
-                .get("stage_specific", {})
+                .get("stage", {})
                 .get(stage, {})
                 .items()
             ):
@@ -581,7 +581,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             config.get("systems", {})
             .get("mapping", {})
             .get("replace", {})
-            .get("credential_system_specific", {})
+            .get("credential_system", {})
             .get(jhub_credential, {})
             .get(initial_data["user_options"]["system"], {})
             .items()
@@ -596,7 +596,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             config.get("systems", {})
             .get("mapping", {})
             .get("replace", {})
-            .get("credential_specific", {})
+            .get("credential", {})
             .get(jhub_credential, {})
             .items()
         ):
@@ -610,7 +610,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
             config.get("systems", {})
             .get("mapping", {})
             .get("replace", {})
-            .get("system_specific", {})
+            .get("system", {})
             .get(initial_data["user_options"]["system"], {})
             .items()
         ):
