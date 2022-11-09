@@ -1050,7 +1050,7 @@ def _get_transport(
     logs_extra={},
 ):
     log.trace("pyunicore - get transport", extra=logs_extra)
-    auth_token = custom_headers["access-token"]
+    credential = custom_headers["access-token"]
     mapped_system = (
         config.get("systems", {})
         .get("mapping", {})
@@ -1094,7 +1094,7 @@ def _get_transport(
     )
     try:
         transport = pyunicore.Transport(
-            auth_token=auth_token,
+            credential=credential,
             oidc=oidc,
             verify=certificate_path,
             timeout=timeout,
