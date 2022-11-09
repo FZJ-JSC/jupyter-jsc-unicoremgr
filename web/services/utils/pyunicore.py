@@ -413,7 +413,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
 
         # Same stage and credential but different system
         stages_credential_system_to_skip = [
-            f"{stage}_{system}_{x}_"
+            f"{stage}_{x}_{system}_"
             for x in config.get("systems", {})
             .get("mapping", {})
             .get("skip", {})
