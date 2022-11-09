@@ -249,7 +249,7 @@ class MockClient:
 
 
 def mocked_pyunicore_transport_init(
-    auth_token=None, oidc=True, verify=False, timeout=120
+    credential=None, oidc=True, verify=False, timeout=120
 ):
     return MockTransport(oidc, verify, timeout)
 
