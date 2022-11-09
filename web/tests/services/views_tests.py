@@ -603,7 +603,8 @@ class ServiceViewTests(UserCredentials):
         stage_specific_configured = (
             config.get("systems", {})
             .get("mapping", {})
-            .get("replace_stage_specific", {})
+            .get("replace", {})
+            .get("stage_specific", {})
             .get("stage1", {})
             .get("stage_stuff", None)
         )

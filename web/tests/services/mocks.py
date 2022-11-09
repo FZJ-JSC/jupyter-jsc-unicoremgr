@@ -7,11 +7,19 @@ def config_mock():
         "systems": {
             "mapping": {
                 "system": {"DEMO-SITE": "default_system"},
-                "replace_stage_specific": {
-                    "stage1": {"stage_stuff": "stage1"},
-                    "stage2": {"stage_stuff": "stage2"},
+                "skip": {
+                    "stage_specific": ["stage1", "stage2"],
+                    "system_specific": ["DEMO-SITE", "SYSTEM2"]
                 },
-                "replace_system_specific": {"DEMO-SITE": {}, "SYSTEM2": {}},
+                "replace": {
+                    "stage_specific": {
+                        "stage1": {"stage_stuff": "stage1"},
+                        "stage2": {"stage_stuff": "stage2"},
+                    },
+                    "system_specific": {
+                        "DEMO-SITE": {}, "SYSTEM2": {}
+                    }
+                }
             },
             "DEMO-SITE": {
                 "site_url": "https://localhost:8080/DEMO-SITE/rest/core",
