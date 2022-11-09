@@ -8,15 +8,15 @@ def config_mock():
             "mapping": {
                 "system": {"DEMO-SITE": "default_system"},
                 "skip": {
-                    "stage_specific": ["stage1", "stage2"],
-                    "system_specific": ["DEMO-SITE", "SYSTEM2"]
+                    "stage": ["stage1", "stage2"],
+                    "system": ["DEMO-SITE", "SYSTEM2"]
                 },
                 "replace": {
-                    "stage_specific": {
+                    "stage": {
                         "stage1": {"stage_stuff": "stage1"},
                         "stage2": {"stage_stuff": "stage2"},
                     },
-                    "system_specific": {
+                    "system": {
                         "DEMO-SITE": {}, "SYSTEM2": {}
                     }
                 }

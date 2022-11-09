@@ -604,7 +604,7 @@ class ServiceViewTests(UserCredentials):
             config.get("systems", {})
             .get("mapping", {})
             .get("replace", {})
-            .get("stage_specific", {})
+            .get("stage", {})
             .get("stage1", {})
             .get("stage_stuff", None)
         )
