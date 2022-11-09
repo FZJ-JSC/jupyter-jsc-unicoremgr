@@ -3,6 +3,7 @@ import os
 
 from django.apps import AppConfig
 from jupyterjsc_unicoremgr.settings import LOGGER_NAME
+from services.utils import _config
 
 log = logging.getLogger(LOGGER_NAME)
 assert log.__class__.__name__ == "ExtraLoggerClass"
@@ -45,9 +46,8 @@ class ServicesConfig(AppConfig):
         HandlerModel(**data).save()
 
     def setup_db(self):
-        user_groups = {
-            "jupyterhub": ["access_to_webservice", "access_to_logging"],
-        }
+        config = _config()
+        user_groups = config.get("startup", {}).get("create_user", {})
 
         superuser_name = "admin"
         superuser_mail = os.environ.get("SUPERUSER_MAIL", "admin@example.com")
@@ -60,6 +60,12 @@ class ServicesConfig(AppConfig):
             userpass = os.environ.get(f"{username.upper()}_USER_PASS", None)
             if userpass:
                 self.create_user(username, userpass, groups=groups)
+            else:
+                log.info(
+                    f"Do not create user {username} - password is missing",
+                    extra={"uuidcode": "StartUp"},
+                )
+
     
     def ready(self):
         if os.environ.get("GUNICORN_START", "false").lower() == "true":
