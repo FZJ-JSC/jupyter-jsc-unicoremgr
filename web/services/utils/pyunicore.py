@@ -130,7 +130,7 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
         jd[environment_key] = {}
     for key, value in initial_data["env"].items():
         if key not in skip_environments:
-            jd[environment_key][key] = value
+            jd[environment_key][key] = str(value)
     if "certs" in initial_data.keys():
         certs_keyfile_name = (
             config.get("systems", {})
@@ -156,9 +156,9 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
             .get("certs", {})
             .get("keyfile_name", "service_ca.crt")
         )
-        jd[environment_key]["JUPYTERHUB_SSL_KEYFILE_DATA"] = certs_keyfile_name
-        jd[environment_key]["JUPYTERHUB_SSL_CERTFILE_DATA"] = certs_certfile_name
-        jd[environment_key]["JUPYTERHUB_SSL_CLIENT_CA_DATA"] = certs_cafile_name
+        jd[environment_key]["JUPYTERHUB_SSL_KEYFILE_DATA"] = str(certs_keyfile_name)
+        jd[environment_key]["JUPYTERHUB_SSL_CERTFILE_DATA"] = str(certs_certfile_name)
+        jd[environment_key]["JUPYTERHUB_SSL_CLIENT_CA_DATA"] = str(certs_cafile_name)
 
     return jd
 
