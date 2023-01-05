@@ -1,3 +1,4 @@
+import base64
 import copy
 import html
 import json
@@ -377,7 +378,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
     system = initial_data["user_options"]["system"]
     stage = os.environ.get("STAGE", "").lower()
 
-    # We will skip files that are not meant for specific configurations 
+    # We will skip files that are not meant for specific configurations
     if stage:
         stages_to_skip = [
             f"{x}_"
@@ -546,7 +547,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                     f"{replace_indicators[0]}{key}{replace_indicators[1]}",
                     value,
                 )
-            
+
             # Replace values specified for stage+system
             for key, value in (
                 config.get("systems", {})
@@ -561,7 +562,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                     f"{replace_indicators[0]}{key}{replace_indicators[1]}",
                     value,
                 )
-            
+
             # Replace values specified for stage
             for key, value in (
                 config.get("systems", {})
@@ -604,7 +605,7 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 f"{replace_indicators[0]}{key}{replace_indicators[1]}",
                 value,
             )
-        
+
         # Replace values specified for system
         for key, value in (
             config.get("systems", {})
@@ -618,7 +619,6 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 f"{replace_indicators[0]}{key}{replace_indicators[1]}",
                 value,
             )
-        
 
         # Hooks can be used to change file for specific user_options
         # Example:
@@ -715,6 +715,15 @@ def _jd_add_input_files(config, jhub_credential, initial_data, jd, logs_extra={}
                 "Data": initial_data["certs"]["cafile"],
             }
         )
+    if "input_files" in initial_data.keys():
+        for filename, b64data in initial_data["input_files"].items():
+            imports.append(
+                {
+                    "From": imports_from_value,
+                    "To": filename,
+                    "Data": base64.b64decode(b64data).decode(),
+                }
+            )
     if imports:
         imports_key = (
             config.get("systems", {})
@@ -908,7 +917,8 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
             logs_extra=logs_extra,
         )
     running = job.is_running()
-    log.trace(f"Get Service status - running: {running}", extra=logs_extra)
+    status = job.properties["status"]
+    log.trace(f"Get Service status - running: {running} ( {status} )", extra=logs_extra)
     if not running:
         # Get useful output for user
         unicore_detailed_error_join = (
@@ -1034,13 +1044,14 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         log.debug("Information shown to user", logs_extra)
         return {
             "running": running,
+            "status": status,
             "details": {
                 "error": error_msg,
                 "detailed_error": detailed_error,
             },
         }
     else:
-        return {"running": running}
+        return {"running": running, "status": status}
 
 
 def _get_transport(
