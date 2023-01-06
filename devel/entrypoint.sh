@@ -10,7 +10,8 @@ mkdir -p /home/${USERNAME}/.ssh
 if [[ -d /tmp/${USERNAME}_ssh ]]; then
     cp -rp /tmp/${USERNAME}_ssh/* /home/${USERNAME}/.ssh/.
 fi
-chmod -R 400 /home/${USERNAME}/.ssh
+chmod 755 /home/${USERNAME}/.ssh
+chmod 400 /home/${USERNAME}/.ssh/*
 chown -R ${USERNAME}:users /home/${USERNAME}/.ssh
 
 if [[ -d /tmp/${USERNAME}_certs ]]; then
@@ -52,7 +53,8 @@ if [[ -d /tmp/${USERNAME}_vscode ]]; then
     cp -rp /tmp/${USERNAME}_vscode/* /home/${USERNAME}/web/.vscode/.
     find /home/${USERNAME}/web/.vscode -type f -exec sed -i '' -e "s@<KUBERNETES_SERVICE_HOST>@${KUBERNETES_SERVICE_HOST}@g" -e "s@<KUBERNETES_SERVICE_PORT>@${KUBERNETES_SERVICE_PORT}@g" {} \; 2> /dev/null
 fi
-chmod -R 400 /home/${USERNAME}/web/.vscode
+chmod 755 /home/${USERNAME}/web/.vscode
+chmod 644 /home/${USERNAME}/web/.vscode/*
 chown -R ${USERNAME}:users /home/${USERNAME}/web/.vscode
 
 if [[ -d /tmp/${USERNAME}_home ]]; then
