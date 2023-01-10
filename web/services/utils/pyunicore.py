@@ -131,7 +131,7 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
         jd[environment_key] = {}
     for key, value in initial_data["env"].items():
         if key not in skip_environments:
-            jd[environment_key][key] = value
+            jd[environment_key][key] = str(value)
     if "certs" in initial_data.keys():
         certs_keyfile_name = (
             config.get("systems", {})
@@ -157,9 +157,9 @@ def _jd_add_initial_data_env(config, initial_data, jd, logs_extra):
             .get("certs", {})
             .get("keyfile_name", "service_ca.crt")
         )
-        jd[environment_key]["JUPYTERHUB_SSL_KEYFILE_DATA"] = certs_keyfile_name
-        jd[environment_key]["JUPYTERHUB_SSL_CERTFILE_DATA"] = certs_certfile_name
-        jd[environment_key]["JUPYTERHUB_SSL_CLIENT_CA_DATA"] = certs_cafile_name
+        jd[environment_key]["JUPYTERHUB_SSL_KEYFILE_DATA"] = str(certs_keyfile_name)
+        jd[environment_key]["JUPYTERHUB_SSL_CERTFILE_DATA"] = str(certs_certfile_name)
+        jd[environment_key]["JUPYTERHUB_SSL_CLIENT_CA_DATA"] = str(certs_cafile_name)
 
     return jd
 
@@ -918,6 +918,7 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         )
     running = job.is_running()
     status = job.properties["status"]
+    bss_details = job.bss_details()
     log.trace(f"Get Service status - running: {running} ( {status} )", extra=logs_extra)
     if not running:
         # Get useful output for user
@@ -1045,13 +1046,14 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         return {
             "running": running,
             "status": status,
+            "bss_details": bss_details,
             "details": {
                 "error": error_msg,
                 "detailed_error": detailed_error,
             },
         }
     else:
-        return {"running": running, "status": status}
+        return {"running": running, "status": status, "bss_details": bss_details}
 
 
 def _get_transport(
