@@ -6,12 +6,13 @@ USERNAME=unicoremgr
 export SSHD_LOG_PATH=${SSHD_LOG_PATH:-/home/${USERNAME}/sshd.log}
 /usr/sbin/sshd -f /etc/ssh/sshd_config -E ${SSHD_LOG_PATH}
 
+mkdir -p /home/${USERNAME}/.ssh
 if [[ -d /tmp/${USERNAME}_ssh ]]; then
-    mkdir -p /home/${USERNAME}/.ssh
     cp -rp /tmp/${USERNAME}_ssh/* /home/${USERNAME}/.ssh/.
-    chmod -R 400 /home/${USERNAME}/.ssh/*
-    chown -R ${USERNAME}:users /home/${USERNAME}/.ssh
 fi
+chmod 755 /home/${USERNAME}/.ssh
+chmod 400 /home/${USERNAME}/.ssh/*
+chown -R ${USERNAME}:users /home/${USERNAME}/.ssh
 
 if [[ -d /tmp/${USERNAME}_certs ]]; then
     mkdir -p /home/${USERNAME}/certs
@@ -47,11 +48,15 @@ export GUNICORN_SSL_KEY=${GUNICORN_SSL_KEY:-/home/${USERNAME}/certs/${USERNAME}.
 export GUNICORN_PROCESSES=${GUNICORN_PROCESSES:-16}
 export GUNICORN_THREADS=${GUNICORN_THREADS:-1}
 
+mkdir -p /home/${USERNAME}/web/.vscode
 if [[ -d /tmp/${USERNAME}_vscode ]]; then
-    mkdir -p /home/${USERNAME}/web/.vscode
     cp -rp /tmp/${USERNAME}_vscode/* /home/${USERNAME}/web/.vscode/.
     find /home/${USERNAME}/web/.vscode -type f -exec sed -i '' -e "s@<KUBERNETES_SERVICE_HOST>@${KUBERNETES_SERVICE_HOST}@g" -e "s@<KUBERNETES_SERVICE_PORT>@${KUBERNETES_SERVICE_PORT}@g" {} \; 2> /dev/null
 fi
+chmod 755 /home/${USERNAME}/web/.vscode
+chmod 644 /home/${USERNAME}/web/.vscode/*
+chown -R ${USERNAME}:users /home/${USERNAME}/web/.vscode
+
 if [[ -d /tmp/${USERNAME}_home ]]; then
     cp -rp /tmp/${USERNAME}_home/* /home/${USERNAME}/.
 fi
