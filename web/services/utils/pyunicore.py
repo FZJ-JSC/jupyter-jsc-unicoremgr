@@ -920,140 +920,138 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
     status = job.properties["status"]
     bss_details = job.bss_details()
     log.trace(f"Get Service status - running: {running} ( {status} )", extra=logs_extra)
-    if not running:
-        # Get useful output for user
-        unicore_detailed_error_join = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("detailed_error_join", "")
-        )
-        unicore_logs_lines = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_logs", {})
-            .get("lines", 3)
-        )
-        unicore_logs_join = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_logs", {})
-            .get("join", "<br>")
-        )
-        unicore_logs_summary = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_logs", {})
-            .get("summary", "&nbsp&nbsp&nbsp&nbspUNICORE logs:")
-        )
+    # We will only call poll, when the job status changed to SUCCESSFUL/DONE/FAILED . So we'll
+    # need the useful output for every GET request
+    unicore_detailed_error_join = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("detailed_error_join", "")
+    )
+    unicore_logs_lines = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_logs", {})
+        .get("lines", 3)
+    )
+    unicore_logs_join = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_logs", {})
+        .get("join", "<br>")
+    )
+    unicore_logs_summary = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_logs", {})
+        .get("summary", "&nbsp&nbsp&nbsp&nbspUNICORE logs:")
+    )
 
-        unicore_stdout_lines = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_stdout", {})
-            .get("lines", 5)
-        )
-        unicore_stdout_join = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_stdout", {})
-            .get("join", "<br>")
-        )
-        unicore_stdout_max_bytes = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_stdout", {})
-            .get("max_bytes", 4096)
-        )
-        unicore_stdout_summary = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_stdout", {})
-            .get("summary", "&nbsp&nbsp&nbsp&nbspJob stdout:")
-        )
+    unicore_stdout_lines = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_stdout", {})
+        .get("lines", 5)
+    )
+    unicore_stdout_join = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_stdout", {})
+        .get("join", "<br>")
+    )
+    unicore_stdout_max_bytes = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_stdout", {})
+        .get("max_bytes", 4096)
+    )
+    unicore_stdout_summary = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_stdout", {})
+        .get("summary", "&nbsp&nbsp&nbsp&nbspJob stdout:")
+    )
 
-        unicore_stderr_lines = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_stderr", {})
-            .get("lines", 5)
-        )
-        unicore_stderr_join = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_stderr", {})
-            .get("join", "<br>")
-        )
-        unicore_stderr_max_bytes = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_stderr", {})
-            .get("max_bytes", 4096)
-        )
-        unicore_stderr_summary = (
-            config.get("systems", {})
-            .get(mapped_system, {})
-            .get("status_information", {})
-            .get("unicore_stderr", {})
-            .get("summary", "&nbsp&nbsp&nbsp&nbspJob stderr:")
-        )
+    unicore_stderr_lines = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_stderr", {})
+        .get("lines", 5)
+    )
+    unicore_stderr_join = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_stderr", {})
+        .get("join", "<br>")
+    )
+    unicore_stderr_max_bytes = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_stderr", {})
+        .get("max_bytes", 4096)
+    )
+    unicore_stderr_summary = (
+        config.get("systems", {})
+        .get(mapped_system, {})
+        .get("status_information", {})
+        .get("unicore_stderr", {})
+        .get("summary", "&nbsp&nbsp&nbsp&nbspJob stderr:")
+    )
 
-        unicore_exit_code = job.properties.get("exitCode", "unknown exitCode")
-        error_msg = f"UNICORE Job stopped with exitCode: {unicore_exit_code}"
-        unicore_status_message = job.properties.get(
-            "statusMessage", "unknown statusMessage"
-        )
+    unicore_exit_code = job.properties.get("exitCode", "unknown exitCode")
+    error_msg = f"UNICORE Job stopped with exitCode: {unicore_exit_code}"
+    unicore_status_message = job.properties.get(
+        "statusMessage", "unknown statusMessage"
+    )
 
-        unicore_logs = job.properties.get("log", [])
-        unicore_logs_details = _prettify_error_logs(
-            unicore_logs, unicore_logs_join, unicore_logs_lines, unicore_logs_summary
-        )
+    unicore_logs = job.properties.get("log", [])
+    unicore_logs_details = _prettify_error_logs(
+        unicore_logs, unicore_logs_join, unicore_logs_lines, unicore_logs_summary
+    )
 
-        unicore_stdout = _get_file_output(job, "stdout", unicore_stdout_max_bytes)
-        unicore_stderr = _get_file_output(job, "stderr", unicore_stderr_max_bytes)
-        unicore_stdout_details = _prettify_error_logs(
-            unicore_stdout,
-            unicore_stdout_join,
-            unicore_stdout_lines,
-            unicore_stdout_summary,
-        )
-        unicore_stderr_details = _prettify_error_logs(
-            unicore_stderr,
-            unicore_stderr_join,
-            unicore_stderr_lines,
-            unicore_stderr_summary,
-        )
-        detailed_error_list = [
-            unicore_status_message,
-            unicore_logs_details,
-            unicore_stdout_details,
-            unicore_stderr_details,
-        ]
-        detailed_error = unicore_detailed_error_join.join(detailed_error_list)
-        logs_extra["error_msg"] = error_msg
-        logs_extra["detailed_error"] = detailed_error
-        log.debug("Information shown to user", logs_extra)
-        return {
-            "running": running,
-            "status": status,
-            "bss_details": bss_details,
-            "details": {
-                "error": error_msg,
-                "detailed_error": detailed_error,
-            },
-        }
-    else:
-        return {"running": running, "status": status, "bss_details": bss_details}
+    unicore_stdout = _get_file_output(job, "stdout", unicore_stdout_max_bytes)
+    unicore_stderr = _get_file_output(job, "stderr", unicore_stderr_max_bytes)
+    unicore_stdout_details = _prettify_error_logs(
+        unicore_stdout,
+        unicore_stdout_join,
+        unicore_stdout_lines,
+        unicore_stdout_summary,
+    )
+    unicore_stderr_details = _prettify_error_logs(
+        unicore_stderr,
+        unicore_stderr_join,
+        unicore_stderr_lines,
+        unicore_stderr_summary,
+    )
+    detailed_error_list = [
+        unicore_status_message,
+        unicore_logs_details,
+        unicore_stdout_details,
+        unicore_stderr_details,
+    ]
+    detailed_error = unicore_detailed_error_join.join(detailed_error_list)
+    logs_extra["error_msg"] = error_msg
+    logs_extra["detailed_error"] = detailed_error
+    log.debug("Information shown to user", logs_extra)
+    return {
+        "running": running,
+        "status": status,
+        "bss_details": bss_details,
+        "details": {
+            "error": error_msg,
+            "detailed_error": detailed_error,
+        },
+    }
 
 
 def _get_transport(
