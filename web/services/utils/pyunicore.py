@@ -918,7 +918,14 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         )
     running = job.is_running()
     status = job.properties["status"]
-    bss_details = job.bss_details()
+    get_bss_details = (
+        config.get("systems", {}).get(mapped_system, {}).get("get_bss_details", False)
+    )
+    if get_bss_details:
+        bss_details = job.bss_details()
+    else:
+        bss_details = {}
+
     log.trace(f"Get Service status - running: {running} ( {status} )", extra=logs_extra)
     # We will only call poll, when the job status changed to SUCCESSFUL/DONE/FAILED . So we'll
     # need the useful output for every GET request
