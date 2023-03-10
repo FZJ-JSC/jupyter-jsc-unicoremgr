@@ -58,7 +58,8 @@ def status_service(instance_dict, custom_headers, logs_extra):
         ret = pyunicore.status_service(
             config, instance_dict, custom_headers, logs_extra=logs_extra
         )
-        log.info(f"Service status check finished - {ret}", extra=logs_extra)
+        log.info("Service status check finished", extra=logs_extra)
+        log.debug(f"Service status check finished - {ret}", extra=logs_extra)
         return ret
     except (MgrException, Exception) as e:
         log.warning("Service status check failed", extra=logs_extra, exc_info=True)
