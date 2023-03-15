@@ -309,7 +309,14 @@ def _jd_insert_job_type(config, initial_data, jd):
             .get("normal", {})
             .get("user_options_reservation_key", "reservation")
         )
-        if user_options_reservation_key in initial_data["user_options"].keys():
+        if user_options_reservation_key in initial_data[
+            "user_options"
+        ].keys() and initial_data["user_options"][
+            user_options_reservation_key
+        ].lower() not in [
+            "",
+            "none",
+        ]:
             reservation_key = (
                 config.get("systems", {})
                 .get(mapped_system, {})
