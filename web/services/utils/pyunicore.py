@@ -59,6 +59,16 @@ def start_service(
                 "UNICORE error during start process.",
             )
             e_args = (user_error_msg, str(e))
+        if e_args is tuple and len(e_args) == 2:
+            summary, details = e_args
+            for key, value in config.get("unicore_status_message_prefix", {}).items():
+                if key in details:
+                    user_error_msg = f"{value} {summary}"
+
+            for key, value in config.get("unicore_status_message_suffix", {}).items():
+                if key in details:
+                    user_error_msg = f"{summary} {value}"
+            e_args = (user_error_msg, details)
         raise MgrException(*e_args)
 
 
