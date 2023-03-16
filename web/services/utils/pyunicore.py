@@ -1028,6 +1028,14 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         "statusMessage", "unknown statusMessage"
     )
 
+    for key, value in config.get("unicore_status_message_prefix", {}).items():
+        if key in unicore_status_message:
+            error_msg = f"{value} {error_msg}"
+
+    for key, value in config.get("unicore_status_message_suffix", {}).items():
+        if key in unicore_status_message:
+            error_msg = f"{error_msg} {value}"
+
     unicore_logs = job.properties.get("log", [])
     unicore_logs_details = _prettify_error_logs(
         unicore_logs, unicore_logs_join, unicore_logs_lines, unicore_logs_summary
