@@ -59,16 +59,6 @@ def start_service(
                 "UNICORE error during start process.",
             )
             e_args = (user_error_msg, str(e))
-        if e_args is tuple and len(e_args) == 2:
-            summary, details = e_args
-            for key, value in config.get("unicore_status_message_prefix", {}).items():
-                if key in details:
-                    user_error_msg = f"{value} {summary}"
-
-            for key, value in config.get("unicore_status_message_suffix", {}).items():
-                if key in details:
-                    user_error_msg = f"{summary} {value}"
-            e_args = (user_error_msg, details)
         raise MgrException(*e_args)
 
 
@@ -1037,14 +1027,6 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
     unicore_status_message = job.properties.get(
         "statusMessage", "unknown statusMessage"
     )
-
-    for key, value in config.get("unicore_status_message_prefix", {}).items():
-        if key in unicore_status_message:
-            error_msg = f"{value} {error_msg}"
-
-    for key, value in config.get("unicore_status_message_suffix", {}).items():
-        if key in unicore_status_message:
-            error_msg = f"{error_msg} {value}"
 
     unicore_logs = job.properties.get("log", [])
     unicore_logs_details = _prettify_error_logs(

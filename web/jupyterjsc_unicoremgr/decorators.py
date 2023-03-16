@@ -4,6 +4,7 @@ import logging
 from logs.utils import create_logging_handler
 from logs.utils import remove_logging_handler
 from rest_framework.response import Response
+from services.utils import _config
 from services.utils import MgrException
 
 from .settings import LOGGER_NAME
@@ -59,9 +60,32 @@ def request_decorator(func):
                 raise e
             log.exception("Unexpected Error")
             if e.__class__.__name__ == "MgrException":
-                details = {"error": e.args[0], "detailed_error": e.args[1]}
+                summary = e.args[0]
+                details = e.args[1]
             else:
-                details = {"error": "Unexpected Error", "detailed_error": str(e)}
+                summary = "Unexpected Error"
+                details = str(e)
+
+            try:
+                config = _config()
+
+                for key, value in config.get(
+                    "unicore_status_message_prefix", {}
+                ).items():
+                    if key in details:
+                        summary = f"{value} {summary}"
+
+                for key, value in config.get(
+                    "unicore_status_message_suffix", {}
+                ).items():
+                    if key in details:
+                        summary = f"{summary} {value}"
+            except:
+                print("Could not update error messages")
+                import traceback
+
+                print(traceback.format_exc())
+            details = {"error": summary, "detailed_error": details}
             return Response(details, status=500)
 
     return catch_all_exceptions
