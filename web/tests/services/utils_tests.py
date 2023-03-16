@@ -155,6 +155,26 @@ class JobDescriptionTests(APITestCase):
             ],
         )
 
+    def test__jd_reservation_none(self):
+        data = copy.deepcopy(self.request_data_simple)
+        data["user_options"]["reservation"] = "None"
+        data["user_options"]["partition"] = "batch"
+        jd_template = pyunicore._jd_template(self.config, self.jhub_credential, data)
+        jd = pyunicore._jd_insert_job_type(self.config, data, jd_template)
+        self.assertTrue("Reservation" not in jd["Resources"].keys())
+        data["user_options"]["reservation"] = ""
+        jd_template = pyunicore._jd_template(self.config, self.jhub_credential, data)
+        jd = pyunicore._jd_insert_job_type(self.config, data, jd_template)
+        self.assertTrue("Reservation" not in jd["Resources"].keys())
+
+    def test__jd_reservation_none1(self):
+        data = copy.deepcopy(self.request_data_simple)
+        data["user_options"]["reservation"] = "None1"
+        data["user_options"]["partition"] = "batch"
+        jd_template = pyunicore._jd_template(self.config, self.jhub_credential, data)
+        jd = pyunicore._jd_insert_job_type(self.config, data, jd_template)
+        self.assertEqual(jd["Resources"]["Reservation"], "None1")
+
     def test__jd_insert_job_type_normal(self):
         data = copy.deepcopy(self.request_data_simple)
         jhub_resource_gpus_key = "resource_gpus"
