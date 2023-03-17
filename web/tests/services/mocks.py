@@ -9,17 +9,183 @@ def config_mock():
                 "system": {"DEMO-SITE": "default_system"},
                 "skip": {
                     "stage": ["stage1", "stage2"],
-                    "system": ["DEMO-SITE", "SYSTEM2"]
+                    "system": ["DEMO-SITE", "SYSTEM2"],
                 },
                 "replace": {
                     "stage": {
                         "stage1": {"stage_stuff": "stage1"},
                         "stage2": {"stage_stuff": "stage2"},
                     },
-                    "system": {
-                        "DEMO-SITE": {}, "SYSTEM2": {}
+                    "system": {"DEMO-SITE": {}, "SYSTEM2": {}},
+                },
+            },
+            "DEMO-SITE": {
+                "site_url": "https://localhost:8080/DEMO-SITE/rest/core",
+                "interactive_partitions": {"LoginNode": "localost"},
+                "hooks": {
+                    "load_project_specific_kernel": {
+                        "project": ["training1904"],
+                        "partition": ["devel"],
                     }
-                }
+                },
+            },
+            "default_system": {
+                "backend_id_env_name": "JUPYTER_BACKEND_ID",
+                "remote_nodes": ["demo_site"],
+                "max_start_attempts": 3,
+                "pyunicore": {
+                    "job_archive": "/tmp/job-archive",
+                    "transport": {
+                        "certificate_path": False,
+                        "oidc": False,
+                        "timeout": 120,
+                        "set_preferences": False,
+                    },
+                    "cleanup": {
+                        "enabled": True,
+                        "tags": ["Jupyter-JSC"],
+                        "max_per_start": 2,
+                    },
+                    "job_description": {
+                        "base_directory": "web/tests/config/job_descriptions",
+                        "template_filename": "job_description.json.template",
+                        "replace_indicators": ["<", ">"],
+                        "input": {
+                            "directory_name": "input",
+                            "skip_prefixs": ["skip_"],
+                            "skip_suffixs": [".swp"],
+                        },
+                        "input_directory_name": "input",
+                        "resource_mapping": {
+                            "resource_nodes": "Nodes",
+                            "resource_Runtime": "Runtime",
+                            "resource_gpus": "GPUs",
+                        },
+                        "unicore_keywords": {
+                            "type_key": "Job type",
+                            "interactive": {
+                                "type_value": "interactive",
+                                "node_key": "Login node",
+                            },
+                            "normal": {
+                                "type_value": "normal",
+                                "resources_key": "Resources",
+                                "queue_key": "Queue",
+                                "set_queue": False,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        "credential_mapping": {"authorized": "default_credential"},
+    }
+
+
+def config_mock_suffix():
+    return {
+        "unicore_status_message_suffix": {
+            "MockException": "Suffix",
+            "NewJob Exception.": "NewJobSuffix",
+        },
+        "systems": {
+            "mapping": {
+                "system": {"DEMO-SITE": "default_system"},
+                "skip": {
+                    "stage": ["stage1", "stage2"],
+                    "system": ["DEMO-SITE", "SYSTEM2"],
+                },
+                "replace": {
+                    "stage": {
+                        "stage1": {"stage_stuff": "stage1"},
+                        "stage2": {"stage_stuff": "stage2"},
+                    },
+                    "system": {"DEMO-SITE": {}, "SYSTEM2": {}},
+                },
+            },
+            "DEMO-SITE": {
+                "site_url": "https://localhost:8080/DEMO-SITE/rest/core",
+                "interactive_partitions": {"LoginNode": "localost"},
+                "hooks": {
+                    "load_project_specific_kernel": {
+                        "project": ["training1904"],
+                        "partition": ["devel"],
+                    }
+                },
+            },
+            "default_system": {
+                "backend_id_env_name": "JUPYTER_BACKEND_ID",
+                "remote_nodes": ["demo_site"],
+                "max_start_attempts": 3,
+                "pyunicore": {
+                    "job_archive": "/tmp/job-archive",
+                    "transport": {
+                        "certificate_path": False,
+                        "oidc": False,
+                        "timeout": 120,
+                        "set_preferences": False,
+                    },
+                    "cleanup": {
+                        "enabled": True,
+                        "tags": ["Jupyter-JSC"],
+                        "max_per_start": 2,
+                    },
+                    "job_description": {
+                        "base_directory": "web/tests/config/job_descriptions",
+                        "template_filename": "job_description.json.template",
+                        "replace_indicators": ["<", ">"],
+                        "input": {
+                            "directory_name": "input",
+                            "skip_prefixs": ["skip_"],
+                            "skip_suffixs": [".swp"],
+                        },
+                        "input_directory_name": "input",
+                        "resource_mapping": {
+                            "resource_nodes": "Nodes",
+                            "resource_Runtime": "Runtime",
+                            "resource_gpus": "GPUs",
+                        },
+                        "unicore_keywords": {
+                            "type_key": "Job type",
+                            "interactive": {
+                                "type_value": "interactive",
+                                "node_key": "Login node",
+                            },
+                            "normal": {
+                                "type_value": "normal",
+                                "resources_key": "Resources",
+                                "queue_key": "Queue",
+                                "set_queue": False,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        "credential_mapping": {"authorized": "default_credential"},
+    }
+
+
+def config_mock_prefix():
+    return {
+        "unicore_status_message_prefix": {
+            "MockException": "Prefix.",
+            "NewJob Exception.": "NewJobPrefix",
+        },
+        "systems": {
+            "mapping": {
+                "system": {"DEMO-SITE": "default_system"},
+                "skip": {
+                    "stage": ["stage1", "stage2"],
+                    "system": ["DEMO-SITE", "SYSTEM2"],
+                },
+                "replace": {
+                    "stage": {
+                        "stage1": {"stage_stuff": "stage1"},
+                        "stage2": {"stage_stuff": "stage2"},
+                    },
+                    "system": {"DEMO-SITE": {}, "SYSTEM2": {}},
+                },
             },
             "DEMO-SITE": {
                 "site_url": "https://localhost:8080/DEMO-SITE/rest/core",
@@ -248,6 +414,11 @@ class MockClient:
         return ret
 
 
+class MockClientNewJobFail(MockClient):
+    def new_job(self, job_description):
+        raise Exception("NewJob Exception.")
+
+
 def mocked_pyunicore_transport_init(
     credential=None, oidc=True, verify=False, timeout=120
 ):
@@ -256,6 +427,10 @@ def mocked_pyunicore_transport_init(
 
 def mocked_pyunicore_job_init(transport, resource_url):
     return MockJob(transport, resource_url)
+
+
+def mocked_pyunicore_client_newjob_fail(transport, resource_url):
+    return MockClientNewJobFail(transport, resource_url)
 
 
 def mocked_pyunicore_client_init(transport, site_url):

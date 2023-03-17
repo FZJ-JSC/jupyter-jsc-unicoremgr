@@ -5,6 +5,7 @@ from django.urls.base import reverse
 from jupyterjsc_unicoremgr.settings import LOGGER_NAME
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from services.utils import _config
 from services.utils import MgrException
 
 from .models import ServicesModel
@@ -113,5 +114,19 @@ class ServicesSerializer(serializers.ModelSerializer):
                 }
         if not status:
             status = {"running": True}
+        if "detailed_error" in status.get("details", {}).keys():
+            summary = status.get("details", {}).get("error", "")
+            details = status.get("details", {}).get("detailed_error", "")
+            config = _config()
+            for key, value in config.get("unicore_status_message_prefix", {}).items():
+                if key in details:
+                    summary = f"{value} {summary}"
+
+            for key, value in config.get("unicore_status_message_suffix", {}).items():
+                if key in details:
+                    summary = f"{summary} {value}"
+
+            status["details"] = {"error": summary, "detailed_error": details}
+
         ret.update(status)
         return ret

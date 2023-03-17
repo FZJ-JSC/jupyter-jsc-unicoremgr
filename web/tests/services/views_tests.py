@@ -9,10 +9,13 @@ from tests.user_credentials import UserCredentials
 
 from .mocks import config_mock
 from .mocks import config_mock_mapped
+from .mocks import config_mock_prefix
+from .mocks import config_mock_suffix
 from .mocks import mocked_exception
 from .mocks import mocked_new_job
 from .mocks import mocked_pass
 from .mocks import mocked_pyunicore_client_init
+from .mocks import mocked_pyunicore_client_newjob_fail
 from .mocks import mocked_pyunicore_job_init
 from .mocks import mocked_pyunicore_transport_init
 
@@ -73,7 +76,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Transport",
         side_effect=mocked_pyunicore_transport_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_create(
         self, config_mocked, transport_mocked, client_mocked, mocked_requests
     ):
@@ -90,13 +93,110 @@ class ServiceViewTests(UserCredentials):
     )
     @mock.patch(
         target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_newjob_fail,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
+    def test_create_newjob_fail(
+        self, config_mocked, transport_mocked, client_mocked, mocked_requests
+    ):
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        self.assertEqual(r.status_code, 500)
+        self.assertEqual(r.json()["detailed_error"], "NewJob Exception.")
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_newjob_fail,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(target="services.utils._config", side_effect=config_mock_prefix)
+    @mock.patch("jupyterjsc_unicoremgr.decorators._config")
+    def test_create_newjob_fail_prefix_errormsg(
+        self,
+        decorator_config,
+        config_mocked,
+        transport_mocked,
+        client_mocked,
+        mocked_requests,
+    ):
+        decorator_config.return_value = config_mock_prefix()
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        prefix_config = config_mock_prefix()
+        prefix = prefix_config.get("unicore_status_message_prefix", {}).get(
+            "NewJob Exception."
+        )
+        self.assertEqual(r.status_code, 500)
+        self.assertEqual(r.json()["detailed_error"], "NewJob Exception.")
+        self.assertEqual(
+            r.json()["error"], f"{prefix} UNICORE error during start process."
+        )
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_newjob_fail,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(target="services.utils._config", side_effect=config_mock_suffix)
+    @mock.patch("jupyterjsc_unicoremgr.decorators._config")
+    def test_create_newjob_fail_suffix_errormsg(
+        self,
+        decorator_config,
+        config_mocked,
+        transport_mocked,
+        client_mocked,
+        mocked_requests,
+    ):
+        decorator_config.return_value = config_mock_suffix()
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        suffix_config = config_mock_suffix()
+        suffix = suffix_config.get("unicore_status_message_suffix", {}).get(
+            "NewJob Exception."
+        )
+        self.assertEqual(r.status_code, 500)
+        self.assertEqual(r.json()["detailed_error"], "NewJob Exception.")
+        self.assertEqual(
+            r.json()["error"], f"UNICORE error during start process. {suffix}"
+        )
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
         side_effect=mocked_pyunicore_client_init,
     )
     @mock.patch(
         target="services.utils.pyunicore.pyunicore.Transport",
         side_effect=mocked_pyunicore_transport_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_create_receive_id(
         self, config_mocked, transport_mocked, client_mocked, mocked_requests
     ):
@@ -119,7 +219,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Transport",
         side_effect=mocked_pyunicore_transport_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_create_auto_increment_id(
         self, config_mocked, transport_mocked, client_mocked, mocked_requests
     ):
@@ -147,7 +247,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Transport",
         side_effect=mocked_pyunicore_transport_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_create_use_given_uuidcode(
         self, config_mocked, transport_mocked, client_mocked, mocked_requests
     ):
@@ -182,7 +282,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Job",
         side_effect=mocked_pyunicore_job_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_get_job(
         self,
         config_mocked,
@@ -218,7 +318,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Job",
         side_effect=mocked_pyunicore_job_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_delete_job(
         self,
         config_mocked,
@@ -254,7 +354,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Job",
         side_effect=mocked_pyunicore_job_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_job_model_behaviour(
         self,
         config_mocked,
@@ -295,7 +395,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Job",
         side_effect=mocked_pyunicore_job_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_job_get_exception_behaviour_transport_exception(
         self,
         config_mocked,
@@ -341,7 +441,119 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Job",
         side_effect=mocked_pyunicore_job_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.serializers._config", side_effect=config_mock_suffix)
+    @mock.patch(target="services.utils._config", side_effect=config_mock_suffix)
+    # @mock.patch("jupyterjsc_unicoremgr.decorators._config")
+    def test_job_get_error_message_suffix(
+        self,
+        # decorator_config,
+        config_mocked_suffix,
+        config_mocked_suffix2,
+        job_mocked,
+        transport_mocked,
+        client_mocked,
+        mocked_requests,
+    ):
+        # decorator_config.return_value = config_mock_suffix()
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        service_url = f"{url}{r.data['servername']}/"
+        patch = mock.patch(
+            "services.utils.pyunicore.pyunicore.Transport", mocked_exception
+        )
+        patch.start()
+        r = self.client.get(service_url, headers=self.headers)
+        patch.stop()
+        config_suffix = config_mocked_suffix()
+        suffix = config_suffix.get("unicore_status_message_suffix", {}).get(
+            "MockException", ""
+        )
+        self.assertEqual(r.status_code, 200)
+
+        self.assertEqual(
+            r.json()["details"],
+            {
+                "error": f"UNICORE error. {suffix}",
+                "detailed_error": "MockException",
+            },
+        )
+        self.assertTrue(r.data["running"])
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_init,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Job",
+        side_effect=mocked_pyunicore_job_init,
+    )
+    @mock.patch(target="services.serializers._config", side_effect=config_mock_prefix)
+    @mock.patch(target="services.utils._config", side_effect=config_mock_prefix)
+    # @mock.patch("jupyterjsc_unicoremgr.decorators._config")
+    def test_job_get_error_message_prefix(
+        self,
+        # decorator_config,
+        config_mocked_prefix2,
+        config_mocked_prefix,
+        job_mocked,
+        transport_mocked,
+        client_mocked,
+        mocked_requests,
+    ):
+        # decorator_config.return_value = config_mock_prefix()
+        url = reverse("services-list")
+        r = self.client.post(
+            url, data=self.simple_request_data, headers=self.headers, format="json"
+        )
+        service_url = f"{url}{r.data['servername']}/"
+        patch = mock.patch(
+            "services.utils.pyunicore.pyunicore.Transport", mocked_exception
+        )
+        patch.start()
+        r = self.client.get(service_url, headers=self.headers)
+        patch.stop()
+        config_prefix = config_mock_prefix()
+        prefix = config_prefix.get("unicore_status_message_prefix", {}).get(
+            "MockException", ""
+        )
+        self.assertEqual(r.status_code, 200)
+
+        self.assertEqual(
+            r.json()["details"],
+            {
+                "error": f"{prefix} UNICORE error.",
+                "detailed_error": "MockException",
+            },
+        )
+        self.assertTrue(r.data["running"])
+
+    @mock.patch(
+        target="requests.post",
+        side_effect=mocked_requests_post_running,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Client",
+        side_effect=mocked_pyunicore_client_init,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Transport",
+        side_effect=mocked_pyunicore_transport_init,
+    )
+    @mock.patch(
+        target="services.utils.pyunicore.pyunicore.Job",
+        side_effect=mocked_pyunicore_job_init,
+    )
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_job_get_exception_behaviour_job_init_exception(
         self,
         config_mocked,
@@ -385,7 +597,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Job",
         side_effect=mocked_pyunicore_job_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_job_get_exception_behaviour_job_is_running_exception(
         self,
         config_mocked,
@@ -425,7 +637,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Transport",
         side_effect=mocked_pyunicore_transport_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_create_exception_behaviour_top_level_error(
         self, config_mocked, transport_mocked, client_mocked, mocked_requests
     ):
@@ -460,7 +672,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Transport",
         side_effect=mocked_pyunicore_transport_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_delete_exception_behaviour_stop_service_error(
         self, config_mocked, transport_mocked, client_mocked, mocked_requests
     ):
@@ -496,7 +708,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Job",
         side_effect=mocked_pyunicore_job_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_show_data_user_specific(
         self,
         config_mocked,
@@ -533,7 +745,7 @@ class ServiceViewTests(UserCredentials):
         target="services.utils.pyunicore.pyunicore.Job",
         side_effect=mocked_pyunicore_job_init,
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     def test_cannot_delete_other_services(
         self,
         config_mocked,
@@ -576,7 +788,7 @@ class ServiceViewTests(UserCredentials):
     @mock.patch(
         target="tests.services.mocks.MockClient.new_job", side_effect=mocked_new_job
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     @mock.patch.dict(os.environ, {"STAGE": "stage1"})
     def test_skip_replace_stage(
         self,
@@ -626,7 +838,7 @@ class ServiceViewTests(UserCredentials):
     @mock.patch(
         target="tests.services.mocks.MockClient.new_job", side_effect=mocked_new_job
     )
-    @mock.patch(target="services.utils.common._config", side_effect=config_mock)
+    @mock.patch(target="services.utils._config", side_effect=config_mock)
     @mock.patch.dict(os.environ, {"STAGE": "stage1"})
     def test_skip_other_system(
         self,

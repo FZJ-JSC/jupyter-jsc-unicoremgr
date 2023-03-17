@@ -85,7 +85,7 @@ def request_decorator(func):
                 import traceback
 
                 print(traceback.format_exc())
-            details = {"error": summary, "detailed_error": details}
-            return Response(details, status=500)
+            ret = {"error": summary, "detailed_error": details}
+            return Response(ret, status=500)
 
     return catch_all_exceptions
