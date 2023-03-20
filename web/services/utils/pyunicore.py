@@ -896,7 +896,7 @@ def _download_job_files(
         file_destination = f"{destination_base_dir_rstrip}/{name}"
         if path.isfile():
             for allowed_file in allowed_files:
-                if allowed_file.startswith(name):
+                if name.startswith(allowed_file):
                     log.trace(f"Download Service - download: {name}", extra=logs_extra)
                     tic = time.time()
                     try:
