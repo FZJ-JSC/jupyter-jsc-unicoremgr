@@ -4,6 +4,7 @@ import html
 import json
 import logging
 import os
+import time
 
 import pyunicore.client as pyunicore
 from jupyterjsc_unicoremgr.settings import LOGGER_NAME
@@ -30,7 +31,19 @@ def start_service(
         job_description = _get_job_description(
             config, jhub_credential, initial_data, logs_extra=logs_extra
         )
-        job = client.new_job(job_description)
+        tic = time.time()
+        try:
+            job = client.new_job(job_description)
+        except Exception as tice:
+            raise tice
+        finally:
+            toc = time.time() - tic
+            extra_tic = {"tictoc": "client.new_job", "duration": toc}
+            extra_tic.update(logs_extra)
+            log.debug(
+                "UNICORE communication",
+                extra=extra_tic,
+            )
         resource_url = job.resource_url
         log.debug(
             f"Start pyunicore job - resource_url: {resource_url}", extra=logs_extra
@@ -760,8 +773,21 @@ def _get_job_description(config, jhub_credential, initial_data, logs_extra):
 
 
 def _get_job(config, instance_dict, custom_headers, logs_extra):
+
     transport = _get_transport(config, instance_dict, custom_headers, logs_extra)
-    job = pyunicore.Job(transport, instance_dict["resource_url"])
+    tic = time.time()
+    try:
+        job = pyunicore.Job(transport, instance_dict["resource_url"])
+    except Exception as tice:
+        raise tice
+    finally:
+        toc = time.time() - tic
+        extra_tic = {"tictoc": "pyunicore.Job", "duration": toc}
+        extra_tic.update(logs_extra)
+        log.debug(
+            "UNICORE communication",
+            extra=extra_tic,
+        )
     return job
 
 
@@ -790,7 +816,19 @@ def stop_service(
         )
         job = _get_job(config, instance_dict, custom_headers, logs_extra)
         log.debug("Stop pyunicore Service - Get Job: ... done", extra=logs_extra)
-        job.abort()
+        tic = time.time()
+        try:
+            job.abort()
+        except Exception as tice:
+            raise tice
+        finally:
+            toc = time.time() - tic
+            extra_tic = {"tictoc": "job.abort", "duration": toc}
+            extra_tic.update(logs_extra)
+            log.debug(
+                "UNICORE communication",
+                extra=extra_tic,
+            )
         log.debug("Stop pyunicore Service - Job aborted", extra=logs_extra)
 
         if download:
@@ -806,7 +844,19 @@ def stop_service(
 
         if delete:
             log.debug("Stop pyunicore Service - Delete job", extra=logs_extra)
-            job.delete()
+            tic = time.time()
+            try:
+                job.delete()
+            except Exception as tice:
+                raise tice
+            finally:
+                toc = time.time() - tic
+                extra_tic = {"tictoc": "job.delete", "duration": toc}
+                extra_tic.update(logs_extra)
+                log.debug(
+                    "UNICORE communication",
+                    extra=extra_tic,
+                )
 
     except (MgrException, Exception) as e:
         log.warning("pyunicore - Service stop failed", exc_info=True, extra=logs_extra)
@@ -834,7 +884,9 @@ def _create_dir(dir, logs_extra={}):
     os.makedirs(dir, exist_ok=True)
 
 
-def _download_job_files(storage, destination_base_dir, base="/", logs_extra={}):
+def _download_job_files(
+    storage, destination_base_dir, allowed_files=[], base="/", logs_extra={}
+):
     destination_base_dir_rstrip = destination_base_dir.rstrip("/")
     destination_dir = f"{destination_base_dir_rstrip}{base}".rstrip("/")
     _create_dir(destination_dir, logs_extra=logs_extra)
@@ -843,11 +895,29 @@ def _download_job_files(storage, destination_base_dir, base="/", logs_extra={}):
     for name, path in dict_of_paths.items():
         file_destination = f"{destination_base_dir_rstrip}/{name}"
         if path.isfile():
-            log.trace(f"Download Service - download: {name}", extra=logs_extra)
-            path.download(file_destination)
+            for allowed_file in allowed_files:
+                if name.startswith(allowed_file):
+                    log.trace(f"Download Service - download: {name}", extra=logs_extra)
+                    tic = time.time()
+                    try:
+                        path.download(file_destination)
+                    except Exception as tice:
+                        raise tice
+                    finally:
+                        toc = time.time() - tic
+                        extra_tic = {"tictoc": "path.download", "duration": toc}
+                        extra_tic.update(logs_extra)
+                        log.debug(
+                            "UNICORE communication",
+                            extra=extra_tic,
+                        )
         elif path.isdir():
             _download_job_files(
-                storage, destination_base_dir, f"/{name}", logs_extra=logs_extra
+                storage,
+                destination_base_dir,
+                allowed_files,
+                f"/{name}",
+                logs_extra=logs_extra,
             )
 
 
@@ -859,9 +929,15 @@ def _download_service(drf_id, servername, config, job, system, logs_extra={}):
         .get("job_archive", "/tmp")
     )
     destination = f"{destination_dir.rstrip('/')}/{drf_id}_{servername}_{job.job_id}"
+    allowed_files = (
+        config.get("system", {})
+        .get(system, {})
+        .get("pyunicore", {})
+        .get("download_files", ["stderr", "stdout", "bss_submit"])
+    )
     storage = job.working_dir
     log.debug(f"Download Service files - {storage} to {destination}", extra=logs_extra)
-    _download_job_files(storage, destination, "/", logs_extra=logs_extra)
+    _download_job_files(storage, destination, allowed_files, "/", logs_extra=logs_extra)
 
 
 def _get_file_output(job, file, max_bytes):
@@ -923,13 +999,49 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
             mapped_system,
             logs_extra=logs_extra,
         )
-    running = job.is_running()
-    status = job.properties["status"]
+    tic = time.time()
+    try:
+        running = job.is_running()
+    except Exception as tice:
+        raise tice
+    finally:
+        toc = time.time() - tic
+        extra_tic = {"tictoc": "job.is_running", "duration": toc}
+        extra_tic.update(logs_extra)
+        log.debug(
+            "UNICORE communication",
+            extra=extra_tic,
+        )
+    tic = time.time()
+    try:
+        status = job.properties["status"]
+    except Exception as tice:
+        raise tice
+    finally:
+        toc = time.time() - tic
+        extra_tic = {"tictoc": "job.properties", "duration": toc}
+        extra_tic.update(logs_extra)
+        log.debug(
+            "UNICORE communication",
+            extra=extra_tic,
+        )
     get_bss_details = (
         config.get("systems", {}).get(mapped_system, {}).get("get_bss_details", False)
     )
     if get_bss_details:
-        bss_details = job.bss_details()
+        tic = time.time()
+        try:
+            bss_details = job.bss_details()
+        except Exception as tice:
+            raise tice
+        finally:
+            toc = time.time() - tic
+            extra_tic = {"tictoc": "job.bss_details", "duration": toc}
+            extra_tic.update(logs_extra)
+            log.debug(
+                "UNICORE communication",
+                extra=extra_tic,
+            )
     else:
         bss_details = {}
 
@@ -1118,12 +1230,24 @@ def _get_transport(
         extra=logs_extra,
     )
     try:
-        transport = pyunicore.Transport(
-            credential=credential,
-            oidc=oidc,
-            verify=certificate_path,
-            timeout=timeout,
-        )
+        tic = time.time()
+        try:
+            transport = pyunicore.Transport(
+                credential=credential,
+                oidc=oidc,
+                verify=certificate_path,
+                timeout=timeout,
+            )
+        except Exception as tice:
+            raise tice
+        finally:
+            toc = time.time() - tic
+            extra_tic = {"tictoc": "pyunicore.Transport", "duration": toc}
+            extra_tic.update(logs_extra)
+            log.debug(
+                "UNICORE communication",
+                extra=extra_tic,
+            )
         log.trace("pyunicore - received transport object", extra=logs_extra)
         if set_preferences:
             transport.preferences = f"uid:{instance_dict['user_options']['account']},group:{instance_dict['user_options']['project']}"
@@ -1146,7 +1270,19 @@ def _get_client(config, instance_dict, custom_headers, logs_extra={}):
     )
     transport = _get_transport(config, instance_dict, custom_headers, logs_extra)
     try:
-        client = pyunicore.Client(transport, site_url)
+        tic = time.time()
+        try:
+            client = pyunicore.Client(transport, site_url)
+        except Exception as tice:
+            raise tice
+        finally:
+            toc = time.time() - tic
+            extra_tic = {"tictoc": "pyunicore.Client", "duration": toc}
+            extra_tic.update(logs_extra)
+            log.debug(
+                "UNICORE communication",
+                extra=extra_tic,
+            )
         log.trace("pyunicore - retrieved client object", extra=logs_extra)
     except Exception as e:
         error_message = get_error_message(
