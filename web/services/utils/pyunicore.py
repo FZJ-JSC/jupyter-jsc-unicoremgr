@@ -55,7 +55,19 @@ def start_service(
         # be running. If this is the case, we have to try to stop it.
         try:
             if job:
-                job.abort()
+                tic = time.time()
+                try:
+                    job.abort()
+                except Exception as tice:
+                    raise tice
+                finally:
+                    toc = time.time() - tic
+                    extra_tic = {"tictoc": "job.abort", "duration": toc}
+                    extra_tic.update(logs_extra)
+                    log.debug(
+                        "UNICORE communication",
+                        extra=extra_tic,
+                    )
         except:
             log.critical(
                 "Could not abort previously started job",
@@ -928,21 +940,57 @@ def _download_service(drf_id, servername, config, job, system, logs_extra={}):
         .get("pyunicore", {})
         .get("job_archive", "/tmp")
     )
-    destination = f"{destination_dir.rstrip('/')}/{drf_id}_{servername}_{job.job_id}"
+    tic = time.time()
+    try:
+        job_id = job.job_id
+    except Exception as tice:
+        raise tice
+    finally:
+        toc = time.time() - tic
+        extra_tic = {"tictoc": "job.job_id", "duration": toc}
+        extra_tic.update(logs_extra)
+        log.debug(
+            "UNICORE communication",
+            extra=extra_tic,
+        )
+    destination = f"{destination_dir.rstrip('/')}/{drf_id}_{servername}_{job_id}"
     allowed_files = (
         config.get("system", {})
         .get(system, {})
         .get("pyunicore", {})
         .get("download_files", ["stderr", "stdout", "bss_submit"])
     )
-    storage = job.working_dir
+    tic = time.time()
+    try:
+        storage = job.working_dir
+    except Exception as tice:
+        raise tice
+    finally:
+        toc = time.time() - tic
+        extra_tic = {"tictoc": "job.working_dir", "duration": toc}
+        extra_tic.update(logs_extra)
+        log.debug(
+            "UNICORE communication",
+            extra=extra_tic,
+        )
     log.debug(f"Download Service files - {storage} to {destination}", extra=logs_extra)
     _download_job_files(storage, destination, allowed_files, "/", logs_extra=logs_extra)
 
 
 def _get_file_output(job, file, max_bytes):
     try:
-        file_path = job.working_dir.stat(file)
+        tic = time.time()
+        try:
+            file_path = job.working_dir.stat(file)
+        except Exception as tice:
+            raise tice
+        finally:
+            toc = time.time() - tic
+            extra_tic = {"tictoc": "job.working_dir.stat", "duration": toc}
+            log.debug(
+                "UNICORE communication",
+                extra=extra_tic,
+            )
         file_size = file_path.properties["size"]
         if file_size == 0:
             return f"{file} is empty"
@@ -1014,7 +1062,7 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         )
     tic = time.time()
     try:
-        status = job.properties["status"]
+        job_properties = job.properties
     except Exception as tice:
         raise tice
     finally:
@@ -1025,6 +1073,7 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
             "UNICORE communication",
             extra=extra_tic,
         )
+    status = job_properties["status"]
     get_bss_details = (
         config.get("systems", {}).get(mapped_system, {}).get("get_bss_details", False)
     )
@@ -1134,13 +1183,13 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         .get("summary", "&nbsp&nbsp&nbsp&nbspJob stderr:")
     )
 
-    unicore_exit_code = job.properties.get("exitCode", "unknown exitCode")
+    unicore_exit_code = job_properties.get("exitCode", "unknown exitCode")
     error_msg = f"UNICORE Job stopped with exitCode: {unicore_exit_code}"
-    unicore_status_message = job.properties.get(
+    unicore_status_message = job_properties.get(
         "statusMessage", "unknown statusMessage"
     )
 
-    unicore_logs = job.properties.get("log", [])
+    unicore_logs = job_properties.get("log", [])
     unicore_logs_details = _prettify_error_logs(
         unicore_logs, unicore_logs_join, unicore_logs_lines, unicore_logs_summary
     )
