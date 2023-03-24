@@ -1095,6 +1095,21 @@ def status_service(config, instance_dict, custom_headers, logs_extra):
         bss_details = {}
 
     log.trace(f"Get Service status - running: {running} ( {status} )", extra=logs_extra)
+
+    # We've updated to poll every n minutes anyway (current config while writing this: 30 minutes)
+    # So we should NOT always pull the output.
+    # Only get useful output, when the job is not running anymore
+    if running:
+        return {
+            "running": running,
+            "status": status,
+            "bss_details": bss_details,
+            "details": {
+                "error": "No error message available.",
+                "detailed_error": f"Job is still running ( {status} ). ",
+            },
+        }
+
     # We will only call poll, when the job status changed to SUCCESSFUL/DONE/FAILED . So we'll
     # need the useful output for every GET request
     unicore_detailed_error_join = (
