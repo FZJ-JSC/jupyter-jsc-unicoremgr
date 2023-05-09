@@ -89,7 +89,6 @@ class JobDescriptionTests(APITestCase):
             },
         },
         "credential_mapping": {"authorized": "default_credential"},
-        "vos": {},
         "error_messages": {},
     }
 
@@ -99,7 +98,6 @@ class JobDescriptionTests(APITestCase):
             "service": "JupyterLab/simple",
             "account": "account",
             "project": "project",
-            "vo": "myvo",
         }
     }
 
@@ -428,7 +426,6 @@ class JobDescriptionTests(APITestCase):
         access_token = "secret"
         simple_request_data = {
             "user_options": {
-                "vo": "myvo",
                 "system": "DEMO-SITE",
                 "service": "JupyterLab/simple-multiple-keys",
                 "project": "demoproject",
@@ -699,7 +696,6 @@ class PyUnicoreTests(JobDescriptionTests):
     ):
         config = PyUnicoreTests.get_minimal_config()
         data = copy.deepcopy(self.request_data_simple)
-        data["user_options"]["vo"] = "myvo"
         data["env"] = {"JUPYTERHUB_USER_ID": 123}
         data["user_options"]["account"] = "myaccount"
         data["user_options"]["project"] = "myproject"

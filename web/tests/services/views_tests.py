@@ -39,7 +39,6 @@ class ServiceViewTests(UserCredentials):
             "project": "demoproject",
             "partition": "LoginNode",
             "account": "demouser",
-            "vo": "myvo",
         },
         "env": {
             "JUPYTERHUB_USER_ID": 17,

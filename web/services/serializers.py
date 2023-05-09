@@ -55,7 +55,7 @@ class ServicesSerializer(serializers.ModelSerializer):
                 "JUPYTERHUB_API_TOKEN",
                 "JUPYTERHUB_USER_ID",
             ],
-            "user_options": ["vo", "partition", "project", "service", "system"],
+            "user_options": ["partition", "project", "service", "system"],
             "start_id": [],
         }
         try:
