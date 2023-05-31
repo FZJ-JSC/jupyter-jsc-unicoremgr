@@ -110,8 +110,8 @@ def stop_service(instance_dict, custom_headers, logs_extra):
 def initial_data_to_logs_extra(servername, initial_data, custom_headers):
     # Remove secrets for logging
     logs_extra = copy.deepcopy(initial_data)
-    if "access_token" in logs_extra.get("auth_state", {}).keys():
-        logs_extra["auth_state"]["access_token"] = "***"
+    if "auth_state" in logs_extra.keys():
+        del logs_extra["auth_state"]
     logs_extra["env"]["JUPYTERHUB_API_TOKEN"] = "***"
     if "JPY_API_TOKEN" in logs_extra["env"]:  # deprecated in JupyterHub
         logs_extra["env"]["JPY_API_TOKEN"] = "***"
@@ -129,6 +129,8 @@ def instance_dict_and_custom_headers_to_logs_extra(instance_dict, custom_headers
     # Remove secrets for logging
     logs_extra = copy.deepcopy(instance_dict)
     logs_extra.update(copy.deepcopy(custom_headers))
+    if "auth_state" in logs_extra.keys():
+        del logs_extra["auth_state"]
     if "start_date" in logs_extra.keys():
         if logs_extra["start_date"].__class__.__name__ == "datetime":
             logs_extra["start_date"] = logs_extra["start_date"].isoformat()
