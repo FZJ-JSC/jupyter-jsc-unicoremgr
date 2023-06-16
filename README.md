@@ -1,5 +1,7 @@
 # Jupyter-JSC UNICORE manager
 
+This Image is used by [Jupyter-JSC](https://jupyter-jsc.fz-juelich.de) to start JupyterLabs via UNICORE on connected hpc systems.
+
 ## Configuration
 The UNICORE manager webservice uses a JSON format that allows you to configure the commands.  
   
